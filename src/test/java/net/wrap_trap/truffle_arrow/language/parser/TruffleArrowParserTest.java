@@ -48,6 +48,7 @@ public class TruffleArrowParserTest {
   public void testValue() {
     Parser<Expression> parser = TruffleArrowParser.value().from(TruffleArrowParser.tokenizer, TruffleArrowParser.ignored);
     assertThat(parser.parse("$hoge"), is(variable("$hoge")));
+    assertThat(parser.parse("$F_INT"), is(variable("$F_INT")));
     assertThat(parser.parse("123"), is(intValue(123)));
   }
 

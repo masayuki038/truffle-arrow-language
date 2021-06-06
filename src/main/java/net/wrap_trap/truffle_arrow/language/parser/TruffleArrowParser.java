@@ -16,7 +16,7 @@ public class TruffleArrowParser {
   static String[] keywords = {"echo", "if", "loop", "return"};
 
   static Parser<Void> ignored = Scanners.WHITESPACES.optional();
-  static Pattern varToken = Patterns.isChar('$').next(Patterns.isChar(CharPredicates.IS_ALPHA).many1());
+  static Pattern varToken = Patterns.isChar('$').next(Patterns.or(Patterns.isChar(CharPredicates.IS_ALPHA), Patterns.isChar('_')).many1());
   static Terminals terms = Terminals.operators(operators).words(Scanners.IDENTIFIER).keywords(keywords).build();
 
   static Parser<String> varParser = varToken.toScanner("variable").source();

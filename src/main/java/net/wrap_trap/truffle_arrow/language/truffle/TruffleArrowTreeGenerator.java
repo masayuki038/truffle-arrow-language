@@ -31,6 +31,8 @@ public class TruffleArrowTreeGenerator {
       return visit(frame, (AST.If) ast);
     } else if (ast instanceof AST.Assignment) {
       return visit(frame, (AST.Assignment) ast);
+    } else if (ast instanceof AST.Loop) {
+      return visit(frame, (AST.Loop) ast);
     }
     throw new IllegalStateException("Unknown ASTNode: " + ast);
   }
@@ -38,7 +40,8 @@ public class TruffleArrowTreeGenerator {
   StatementBase visit(FrameDescriptor frame, AST.Command command) {
     ExprBase param = visit(frame, command.getParam());
     if ("echo".equals(command.getCommand())) {
-      return null; // TODO
+      ExprBase expr = visit(frame, command.getParam());
+      return new StatementEcho(expr);
     } else if ("return".equals(command.getCommand())) {
       return new ReturnNode(param);
     }
@@ -93,11 +96,11 @@ public class TruffleArrowTreeGenerator {
   }
 
   StatementBase visit(FrameDescriptor frame, AST.Assignment assign) {
-    FrameSlot slot = frame.findOrAddFrameSlot(assign.getVariable().getName(), FrameSlotKind.Illegal);
+    FrameSlot slot = frame.findOrAddFrameSlot(assign.getVariable().getVariableName(), FrameSlotKind.Illegal);
     return StatementWriteLocalNodeGen.create(visit(frame, assign.getExpression()), slot);
   }
   ExprBase visit(FrameDescriptor frame, AST.Variable variable) {
-    FrameSlot slot = frame.findOrAddFrameSlot(variable.getName(), FrameSlotKind.Illegal);
+    FrameSlot slot = frame.findOrAddFrameSlot(variable.getVariableName(), FrameSlotKind.Illegal);
     return ExprReadLocalNodeGen.create(slot);
   }
 
