@@ -1,6 +1,5 @@
 package net.wrap_trap.truffle_arrow.language;
 
-import net.wrap_trap.truffle_arrow.language.truffle.LocalVariableNotFoundException;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.PolyglotException;
 import org.junit.BeforeClass;
@@ -44,7 +43,7 @@ public class TruffleArrowLanguageTest {
       "  echo $F_INT;\n" +
       "  echo $F_BIGINT;\n" +
       "  return $F_BIGINT;\n" +
-      "}\n";
+      "} yield (\"F_INT\", \"F_BIGINT\")\n";
     Context ctx = Context.create("ta");
     assertThat(ctx.eval("ta", script).asLong(), is(10L));
   }
@@ -54,7 +53,7 @@ public class TruffleArrowLanguageTest {
     String script =
       "loop (\"target/all_fields.arrow\") {\n" +
       "  echo $F_BIGIN;\n" +
-      "}\n";
+      "} yield (\"F_BIGIN\")\n";
     try {
       Context ctx = Context.create("ta");
       ctx.eval("ta", script);

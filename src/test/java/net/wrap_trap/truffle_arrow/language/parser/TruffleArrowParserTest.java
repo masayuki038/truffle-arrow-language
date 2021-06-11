@@ -126,14 +126,15 @@ public class TruffleArrowParserTest {
     String loop = "loop (\"/path/to/dir\") { \n"+
                    "  echo $a;\n" +
                    "  echo \"$a < 3\";\n" +
-                   "}\n";
+                   "} yield (\"a\", \"b\")";
 
     Parser<Loop> parser = parser(TruffleArrowParser.loop());
     assertThat(
       parser.parse(loop), is(loop(stringValue("/path/to/dir"),
         Arrays.asList(
           command("echo", variable("$a"))
-          , command("echo", stringValue("$a < 3"))))));
+          , command("echo", stringValue("$a < 3"))),
+        Arrays.asList(stringValue("a"), stringValue("b")))));
   }
 
   @Test

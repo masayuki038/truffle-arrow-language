@@ -112,9 +112,10 @@ public class AST {
   public static class Loop implements ASTNode {
     StringValue path;
     List<ASTNode> statements;
+    List<StringValue> fields;
   }
 
-  public static Loop loop(StringValue path, List<ASTNode> statements) {
-    return new Loop(path, statements);
+  public static Loop loop(StringValue path, List<ASTNode> statements, List<StringValue> fields) {
+    return new Loop(path, statements, fields);
   }
 }

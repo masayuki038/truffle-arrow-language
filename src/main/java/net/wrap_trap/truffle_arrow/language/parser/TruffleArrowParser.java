@@ -13,7 +13,7 @@ import java.util.List;
 public class TruffleArrowParser {
   static String[] operators = {
     "<", ">", "+", "-", "(", ")", ";", "=", ",", "{", "}", "==", ".", "&&", "||", "like"};
-  static String[] keywords = {"echo", "if", "loop", "return"};
+  static String[] keywords = {"echo", "if", "loop", "yield", "return"};
 
   static Parser<Void> ignored = Scanners.WHITESPACES.optional();
   static Pattern varToken = Patterns.isChar('$').next(Patterns.or(Patterns.isChar(CharPredicates.IS_ALPHA), Patterns.isChar('_')).many1());
@@ -103,8 +103,10 @@ public class TruffleArrowParser {
   public static Parser<AST.Loop> loop() {
     return terms.token("loop").next(t -> string()
                                            .between(terms.token("("), terms.token(")"))
-                                           .next(s -> statements()
-                                                        .map(statements -> AST.loop(s, statements))));
+                                           .next(path -> statements()
+                                              .next(statements -> terms.token("yield")
+                                                .next(yield -> string().sepBy(terms.token(",")).between(terms.token("("), terms.token(")"))
+                                                  .map(fields -> AST.loop(path, statements, fields))))));
   }
 
   public static Parser<AST.ASTNode> statement() {
