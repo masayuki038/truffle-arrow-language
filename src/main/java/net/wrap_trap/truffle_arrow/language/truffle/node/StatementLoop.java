@@ -110,8 +110,8 @@ public class StatementLoop extends StatementBase {
               throw new IllegalArgumentException("Unexpected ArrowFieldType:" + type);
           }
         }
-        this.statements.executeVoid(frame);
       }
+      this.statements.executeVoid(frame);
     }
   }
 }

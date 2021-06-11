@@ -1,9 +1,13 @@
 package net.wrap_trap.truffle_arrow.language.truffle;
 
 import com.oracle.truffle.api.TruffleLanguage;
+import com.oracle.truffle.api.dsl.UnsupportedSpecializationException;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
+import net.wrap_trap.truffle_arrow.language.truffle.node.ExprReadLocal;
+import net.wrap_trap.truffle_arrow.language.truffle.node.ExprReadLocalNodeGen;
 import net.wrap_trap.truffle_arrow.language.truffle.node.ReturnException;
 import net.wrap_trap.truffle_arrow.language.truffle.node.Statements;
 
@@ -24,6 +28,12 @@ public class TruffleArrowRootNode extends RootNode {
       statements.executeVoid(frame);
     } catch (ReturnException e) {
       return e.getResult();
+    } catch (UnsupportedSpecializationException e) {
+      Node caused = e.getNode();
+      if (caused instanceof ExprReadLocal) {
+        throw new LocalVariableNotFoundException((ExprReadLocal) caused);
+      }
+      throw e;
     }
     return true;
   }
