@@ -49,7 +49,7 @@ public class TruffleArrowLanguageTest {
   }
 
   @Test
-  public void testRefIllegalVariable() throws IOException {
+  public void testRefIllegalVariable() {
     String script =
       "loop (\"target/all_fields.arrow\") {\n" +
       "  echo $F_BIGIN;\n" +
@@ -61,6 +61,18 @@ public class TruffleArrowLanguageTest {
     } catch (PolyglotException e) {
       assertThat(e.getMessage(), containsString("Failed to reference a local variable: F_BIGIN"));
     }
+  }
+
+  @Test
+  public void testAddNewVariable() {
+    String script =
+      "loop (\"target/all_fields.arrow\") {\n" +
+        "  echo $F_BIGINT;\n" +
+        "  $a = \"hoge\";\n" +
+        "  $b = 1;\n" +
+        "} yield (\"F_BIGINT\", \"a\")\n";
+    Context ctx = Context.create("ta");
+    ctx.eval("ta", script);
   }
 }
 

@@ -62,7 +62,9 @@ public class TruffleArrowTreeGenerator {
       loopNode.getStatements().stream().map(s -> visit(frame, s)).collect(Collectors.toList());
     StatementBase[] array = new StatementBase[list.size()];
     list.toArray(array);
-    return new StatementLoop(pathNode, new Statements(array));
+    List<ExprStringNode> fields =
+      loopNode.getFields().stream().map(s -> visit(frame, s)).collect(Collectors.toList());
+    return new StatementLoop(pathNode, new Statements(array), fields);
   }
 
    ExprBase visit(FrameDescriptor frame, AST.Expression exp) {

@@ -2,7 +2,10 @@ package net.wrap_trap.truffle_arrow.language.truffle.node;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.oracle.truffle.api.frame.FrameDescriptor;
@@ -14,9 +17,10 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 import net.wrap_trap.truffle_arrow.language.ArrowFieldType;
 import net.wrap_trap.truffle_arrow.language.ArrowUtils;
 import net.wrap_trap.truffle_arrow.language.truffle.node.type.ArrowTimeSec;
-import org.apache.arrow.vector.FieldVector;
-import org.apache.arrow.vector.VectorSchemaRoot;
+import org.apache.arrow.memory.BufferAllocator;
+import org.apache.arrow.vector.*;
 import org.apache.arrow.vector.ipc.ArrowFileReader;
+import org.apache.arrow.vector.util.Text;
 
 
 @NodeInfo(shortName = "loop")
@@ -28,9 +32,12 @@ public class StatementLoop extends StatementBase {
   @Child
   private Statements statements;
 
-  public StatementLoop(ExprStringNode dirPath, Statements statements) {
+  private List<ExprStringNode> fields;
+
+  public StatementLoop(ExprStringNode dirPath, Statements statements, List<ExprStringNode> fields) {
     this.dirPath = dirPath;
     this.statements = statements;
+    this.fields = fields;
   }
 
   @Override
@@ -70,6 +77,12 @@ public class StatementLoop extends StatementBase {
       return;
     }
 
+    List<String> fieldNames = this.fields.stream().map(
+      field -> field.executeString(frame)).collect(Collectors.toList());
+
+    VectorSchemaRoot out = null;
+    Map<String, FieldVector> fieldVectorMap = new HashMap<>();
+
     for (int i = 0; i < fieldVectors.get(0).getValueCount(); i++) {
       for (int j = 0; j < fieldVectors.size(); j++) {
         FieldVector fieldVector = fieldVectors.get(j);
@@ -82,19 +95,14 @@ public class StatementLoop extends StatementBase {
           descriptor.setFrameSlotKind(slot, FrameSlotKind.Object);
           frame.setObject(slot, SqlNull.INSTANCE);
         } else {
+          // TODO handle DATE / TIME / TIMESTAMP
           ArrowFieldType type = ArrowFieldType.of(fieldVector.getField().getFieldType().getType());
           switch (type) {
             case INT:
-            case DATE:
-              descriptor.setFrameSlotKind(slot, FrameSlotKind.Int);
+                descriptor.setFrameSlotKind(slot, FrameSlotKind.Int);
               frame.setInt(slot, (int) value);
               break;
-            case TIME:
-              descriptor.setFrameSlotKind(slot, FrameSlotKind.Object);
-              frame.setObject(slot, new ArrowTimeSec((int) value));
-              break;
             case LONG:
-            case TIMESTAMP:
               descriptor.setFrameSlotKind(slot, FrameSlotKind.Long);
               frame.setLong(slot, (long) value);
               break;
@@ -112,6 +120,122 @@ public class StatementLoop extends StatementBase {
         }
       }
       this.statements.executeVoid(frame);
+      if (out == null) {
+        out = createVectorSchemaRoot(descriptor, fieldNames, ArrowUtils.createAllocator("out"));
+        for (FieldVector fieldVector: out.getFieldVectors()) {
+          fieldVectorMap.put(fieldVector.getField().getName(), fieldVector);
+        }
+      }
+      setValues(frame, descriptor, fieldVectorMap, fieldNames, i);
+    }
+  }
+
+  public static VectorSchemaRoot createVectorSchemaRoot(FrameDescriptor descriptor, List<String> fields, BufferAllocator allocator) {
+    List<FieldVector> fieldVectors = new ArrayList<>();
+    fields.stream().forEach(name -> {
+      FrameSlot slot = descriptor.findFrameSlot(name);
+      if (slot == null) {
+        throw new IllegalArgumentException("FrameSlot not found: " + name);
+      }
+      FieldVector fieldVector;
+      // TODO handle DATE / TIME / TIMESTAMP
+      FrameSlotKind kind = descriptor.getFrameSlotKind(slot);
+      switch (kind) {
+        case Int:
+          fieldVector = new IntVector(name, allocator);
+          break;
+        case Long:
+          fieldVector = new BigIntVector(name, allocator);
+          break;
+        case Double:
+          fieldVector = new Float8Vector(name, allocator);
+          break;
+        case Object:
+          fieldVector = new VarCharVector(name, allocator);
+          break;
+        default:
+          throw new IllegalArgumentException(
+            "Unexpected FrameSlotKind. field: %s, FrameSlotKind: %s".format(name, kind));
+      }
+      fieldVector.allocateNew();
+      fieldVectors.add(fieldVector);
+    });
+    return new VectorSchemaRoot(fieldVectors);
+  }
+
+  public static void setValues(VirtualFrame frame, FrameDescriptor descriptor, Map<String, FieldVector> fieldVectorMap, List<String> fields, int index) {
+
+    for(String field: fields) {
+      FrameSlot slot = descriptor.findFrameSlot(field);
+      if (slot == null) {
+        throw new IllegalStateException("Field not found: " + field);
+      }
+      FieldVector fieldVector = fieldVectorMap.get(field);
+      if (fieldVector == null) {
+        throw new IllegalStateException("FieldVector not found: " + field);
+      }
+      ArrowFieldType type = ArrowFieldType.of(fieldVector.getField().getFieldType().getType());
+      Object value = frame.getValue(slot);
+      switch (type) {
+        case INT:
+          IntVector intVector = (IntVector) fieldVector;
+          if (!(value instanceof SqlNull)) {
+            intVector.set(index, (int) value);
+          } else {
+            intVector.setNull(index);
+          }
+          break;
+        case DATE:
+          DateDayVector dateDayVector = (DateDayVector) fieldVector;
+          if (!(value instanceof SqlNull)) {
+            dateDayVector.set(index, (int) value);
+          } else {
+            dateDayVector.setNull(index);
+          }
+          break;
+        case TIME:
+          TimeSecVector timeSecVector = (TimeSecVector) fieldVector;
+          if (!(value instanceof SqlNull)) {
+            timeSecVector.set(index, ((ArrowTimeSec) value).timeSec());
+          } else {
+            timeSecVector.setNull(index);
+          }
+          break;
+        case TIMESTAMP:
+          TimeStampSecTZVector timezoneVector = (TimeStampSecTZVector) fieldVector;
+          if (!(value instanceof SqlNull)) {
+            timezoneVector.set(index, (long) value);
+          } else {
+            timezoneVector.setNull(index);
+          }
+          break;
+        case LONG:
+          BigIntVector bigIntVector = (BigIntVector) fieldVector;
+          if (!(value instanceof SqlNull)) {
+            bigIntVector.set(index, (long) value);
+          } else {
+            bigIntVector.setNull(index);
+          }
+          break;
+        case DOUBLE:
+          Float8Vector float8Vector = (Float8Vector) fieldVector;
+          if (!(value instanceof SqlNull)) {
+            float8Vector.set(index, (double) value);
+          } else {
+            float8Vector.setNull(index);
+          }
+          break;
+        case STRING:
+          VarCharVector varCharVector = (VarCharVector) fieldVector;
+          if (!(value instanceof SqlNull)) {
+            varCharVector.set(index, new Text((String) value));
+          } else {
+            varCharVector.setNull(index);
+          }
+          break;
+        default:
+          throw new IllegalArgumentException("Unexpected ArrowFieldType: " + type);
+      }
     }
   }
 }
