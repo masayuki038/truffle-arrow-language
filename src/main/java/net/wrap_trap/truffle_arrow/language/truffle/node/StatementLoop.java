@@ -17,6 +17,7 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 import net.wrap_trap.truffle_arrow.language.ArrowFieldType;
 import net.wrap_trap.truffle_arrow.language.ArrowUtils;
 import net.wrap_trap.truffle_arrow.language.truffle.node.type.ArrowTimeSec;
+import net.wrap_trap.truffle_arrow.language.truffle.node.type.FieldDef;
 import org.apache.arrow.memory.BufferAllocator;
 import org.apache.arrow.vector.*;
 import org.apache.arrow.vector.ipc.ArrowFileReader;
@@ -32,9 +33,9 @@ public class StatementLoop extends StatementBase {
   @Child
   private Statements statements;
 
-  private List<ExprStringNode> fields;
+  private List<ExprFieldDef> fields;
 
-  public StatementLoop(ExprStringNode dirPath, Statements statements, List<ExprStringNode> fields) {
+  public StatementLoop(ExprStringNode dirPath, Statements statements, List<ExprFieldDef> fields) {
     this.dirPath = dirPath;
     this.statements = statements;
     this.fields = fields;
@@ -77,8 +78,8 @@ public class StatementLoop extends StatementBase {
       return;
     }
 
-    List<String> fieldNames = this.fields.stream().map(
-      field -> field.executeString(frame)).collect(Collectors.toList());
+    List<FieldDef> fieldDefs = this.fields.stream().map(
+      field -> (FieldDef) field.executeGeneric(frame)).collect(Collectors.toList());
 
     VectorSchemaRoot out = null;
     Map<String, FieldVector> fieldVectorMap = new HashMap<>();
@@ -121,41 +122,42 @@ public class StatementLoop extends StatementBase {
       }
       this.statements.executeVoid(frame);
       if (out == null) {
-        out = createVectorSchemaRoot(descriptor, fieldNames, ArrowUtils.createAllocator("out"));
+        out = createVectorSchemaRoot(descriptor, fieldDefs, ArrowUtils.createAllocator("out"));
         for (FieldVector fieldVector: out.getFieldVectors()) {
           fieldVectorMap.put(fieldVector.getField().getName(), fieldVector);
         }
       }
-      setValues(frame, descriptor, fieldVectorMap, fieldNames, i);
+      setValues(frame, descriptor, fieldVectorMap, fieldDefs, i);
     }
   }
 
-  public static VectorSchemaRoot createVectorSchemaRoot(FrameDescriptor descriptor, List<String> fields, BufferAllocator allocator) {
+  public static VectorSchemaRoot createVectorSchemaRoot(FrameDescriptor descriptor, List<FieldDef> fields, BufferAllocator allocator) {
     List<FieldVector> fieldVectors = new ArrayList<>();
-    fields.stream().forEach(name -> {
+    fields.stream().forEach(field -> {
+      String name = field.getName();
+      String type = field.getType();
       FrameSlot slot = descriptor.findFrameSlot(name);
       if (slot == null) {
         throw new IllegalArgumentException("FrameSlot not found: " + name);
       }
       FieldVector fieldVector;
       // TODO handle DATE / TIME / TIMESTAMP
-      FrameSlotKind kind = descriptor.getFrameSlotKind(slot);
-      switch (kind) {
-        case Int:
+      switch (type) {
+        case "INT":
           fieldVector = new IntVector(name, allocator);
           break;
-        case Long:
+        case "BIGINT":
           fieldVector = new BigIntVector(name, allocator);
           break;
-        case Double:
+        case "DOUBLE":
           fieldVector = new Float8Vector(name, allocator);
           break;
-        case Object:
+        case "STRING":
           fieldVector = new VarCharVector(name, allocator);
           break;
         default:
           throw new IllegalArgumentException(
-            "Unexpected FrameSlotKind. field: %s, FrameSlotKind: %s".format(name, kind));
+            "Unexpected field type. field: %s, type: %s".format(name, type));
       }
       fieldVector.allocateNew();
       fieldVectors.add(fieldVector);
@@ -163,16 +165,17 @@ public class StatementLoop extends StatementBase {
     return new VectorSchemaRoot(fieldVectors);
   }
 
-  public static void setValues(VirtualFrame frame, FrameDescriptor descriptor, Map<String, FieldVector> fieldVectorMap, List<String> fields, int index) {
+  public static void setValues(VirtualFrame frame, FrameDescriptor descriptor, Map<String, FieldVector> fieldVectorMap, List<FieldDef> fields, int index) {
 
-    for(String field: fields) {
-      FrameSlot slot = descriptor.findFrameSlot(field);
+    for(FieldDef field: fields) {
+      String fieldName = field.getName();
+      FrameSlot slot = descriptor.findFrameSlot(fieldName);
       if (slot == null) {
-        throw new IllegalStateException("Field not found: " + field);
+        throw new IllegalStateException("Field not found: " + fieldName);
       }
-      FieldVector fieldVector = fieldVectorMap.get(field);
+      FieldVector fieldVector = fieldVectorMap.get(fieldName);
       if (fieldVector == null) {
-        throw new IllegalStateException("FieldVector not found: " + field);
+        throw new IllegalStateException("FieldVector not found: " + fieldName);
       }
       ArrowFieldType type = ArrowFieldType.of(fieldVector.getField().getFieldType().getType());
       Object value = frame.getValue(slot);

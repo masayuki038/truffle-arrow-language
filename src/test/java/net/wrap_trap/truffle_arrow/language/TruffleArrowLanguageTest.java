@@ -43,24 +43,9 @@ public class TruffleArrowLanguageTest {
       "  echo $F_INT;\n" +
       "  echo $F_BIGINT;\n" +
       "  return $F_BIGINT;\n" +
-      "} yield (\"F_INT\", \"F_BIGINT\")\n";
+      "} yield (F_INT:INT, F_BIGINT:BIGINT)\n";
     Context ctx = Context.create("ta");
     assertThat(ctx.eval("ta", script).asLong(), is(10L));
-  }
-
-  @Test
-  public void testRefIllegalVariable() {
-    String script =
-      "loop (\"target/all_fields.arrow\") {\n" +
-      "  echo $F_BIGIN;\n" +
-      "} yield (\"F_BIGIN\")\n";
-    try {
-      Context ctx = Context.create("ta");
-      ctx.eval("ta", script);
-      fail();
-    } catch (PolyglotException e) {
-      assertThat(e.getMessage(), containsString("Failed to reference a local variable: F_BIGIN"));
-    }
   }
 
   @Test
@@ -70,9 +55,38 @@ public class TruffleArrowLanguageTest {
         "  echo $F_BIGINT;\n" +
         "  $a = \"hoge\";\n" +
         "  $b = 1;\n" +
-        "} yield (\"F_BIGINT\", \"a\")\n";
+        "} yield (F_BIGINT:BIGINT, a:STRING)\n";
     Context ctx = Context.create("ta");
     ctx.eval("ta", script);
+  }
+
+  @Test
+  public void testRefIllegalVariableName() {
+    String script =
+      "loop (\"target/all_fields.arrow\") {\n" +
+        "  echo $F_BIGIN;\n" +
+        "} yield (F_BIGIN:BIGINT)\n";
+    try {
+      Context ctx = Context.create("ta");
+      ctx.eval("ta", script);
+      fail();
+    } catch (PolyglotException e) {
+      assertThat(e.getMessage(), containsString("Failed to reference a local variable: F_BIGIN"));
+    }
+  }
+  @Test
+  public void testRefIllegalVariableType() {
+    String script =
+      "loop (\"target/all_fields.arrow\") {\n" +
+        "  echo $F_BIGINT;\n" +
+        "} yield (F_BIGINT:BIGIN)\n";
+    try {
+      Context ctx = Context.create("ta");
+      ctx.eval("ta", script);
+      fail();
+    } catch (PolyglotException e) {
+      assertThat(e.getMessage(), containsString("F_BIGINT"));
+    }
   }
 }
 

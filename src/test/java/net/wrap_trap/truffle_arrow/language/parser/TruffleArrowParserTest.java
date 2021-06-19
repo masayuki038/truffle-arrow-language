@@ -126,7 +126,7 @@ public class TruffleArrowParserTest {
     String loop = "loop (\"/path/to/dir\") { \n"+
                    "  echo $a;\n" +
                    "  echo \"$a < 3\";\n" +
-                   "} yield (\"a\", \"b\")";
+                   "} yield (a:INTEGER, b:INTEGER)";
 
     Parser<Loop> parser = parser(TruffleArrowParser.loop());
     assertThat(
@@ -134,7 +134,7 @@ public class TruffleArrowParserTest {
         Arrays.asList(
           command("echo", variable("$a"))
           , command("echo", stringValue("$a < 3"))),
-        Arrays.asList(stringValue("a"), stringValue("b")))));
+        Arrays.asList(fieldDef("a:INTEGER"), fieldDef("b:INTEGER")))));
   }
 
   @Test

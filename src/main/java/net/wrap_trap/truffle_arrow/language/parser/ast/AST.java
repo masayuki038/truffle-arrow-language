@@ -37,6 +37,20 @@ public class AST {
   }
 
   @Value
+  public static class FieldDef implements Expression {
+    String name;
+    String type;
+  }
+
+  public static FieldDef fieldDef(String fieldDef) {
+    String[] elements = fieldDef.split(":");
+    if (elements.length != 2) {
+      throw new IllegalArgumentException("Invalid FieldDef: " + fieldDef);
+    }
+    return new FieldDef(elements[0], elements[1]);
+  }
+
+  @Value
   public static class BinaryOperator implements Expression {
     Expression left;
     Expression right;
@@ -112,10 +126,10 @@ public class AST {
   public static class Loop implements ASTNode {
     StringValue path;
     List<ASTNode> statements;
-    List<StringValue> fields;
+    List<FieldDef> fields;
   }
 
-  public static Loop loop(StringValue path, List<ASTNode> statements, List<StringValue> fields) {
+  public static Loop loop(StringValue path, List<ASTNode> statements, List<FieldDef> fields) {
     return new Loop(path, statements, fields);
   }
 }

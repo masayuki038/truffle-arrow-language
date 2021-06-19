@@ -62,7 +62,7 @@ public class TruffleArrowTreeGenerator {
       loopNode.getStatements().stream().map(s -> visit(frame, s)).collect(Collectors.toList());
     StatementBase[] array = new StatementBase[list.size()];
     list.toArray(array);
-    List<ExprStringNode> fields =
+    List<ExprFieldDef> fields =
       loopNode.getFields().stream().map(s -> visit(frame, s)).collect(Collectors.toList());
     return new StatementLoop(pathNode, new Statements(array), fields);
   }
@@ -95,6 +95,10 @@ public class TruffleArrowTreeGenerator {
         return ExprGreaterThanNodeGen.create(left, right);
     }
     throw new RuntimeException("Unknown binop " + op);
+  }
+
+  ExprFieldDef visit(FrameDescriptor frame, AST.FieldDef op) {
+    return new ExprFieldDef(op.getName(), op.getType());
   }
 
   StatementBase visit(FrameDescriptor frame, AST.Assignment assign) {

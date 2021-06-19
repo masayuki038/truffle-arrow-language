@@ -9,6 +9,8 @@ import org.jparsec.pattern.Patterns;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.jparsec.pattern.Patterns.isChar;
+
 
 public class TruffleArrowParser {
   static String[] operators = {
@@ -16,33 +18,47 @@ public class TruffleArrowParser {
   static String[] keywords = {"echo", "if", "loop", "yield", "return"};
 
   static Parser<Void> ignored = Scanners.WHITESPACES.optional();
-  static Pattern varToken = Patterns.isChar('$').next(Patterns.or(Patterns.isChar(CharPredicates.IS_ALPHA), Patterns.isChar('_')).many1());
   static Terminals terms = Terminals.operators(operators).words(Scanners.IDENTIFIER).keywords(keywords).build();
 
+  static Pattern varToken = isChar('$').next(Patterns.or(isChar(CharPredicates.IS_ALPHA), isChar('_')).many1());
   static Parser<String> varParser = varToken.toScanner("variable").source();
 
+  static Pattern fieldDefToken = isChar(CharPredicates.IS_ALPHA_).next(isChar(CharPredicates.IS_ALPHA_NUMERIC_).many()).next(isChar(':')).next(isChar(CharPredicates.IS_ALPHA_).many1());
+  static Parser<String> fieldDefParser = fieldDefToken.toScanner("fieldDef").source();
+
   enum Tag {
-    VARIABLE
+    VARIABLE,
+    FIELDDEF
   }
 
   public static final Parser<Tokens.Fragment> VAR_TOKENIZER =
     varParser.map(text -> Tokens.fragment(text, Tag.VARIABLE));
 
-  public static final Parser<String> VAR_PARSER = Parsers.token(t -> {
-    Object val = t.value();
-    if (val instanceof Tokens.Fragment) {
-      Tokens.Fragment c = (Tokens.Fragment) val;
-      return Tag.VARIABLE.equals(c.tag()) ? c.text() : null;
-    }
-    return null;
-  });
+  public static final Parser<Tokens.Fragment> FIELDDEF_TOKENIZER =
+    fieldDefParser.map(text -> Tokens.fragment(text, Tag.FIELDDEF));
+
+  private static final Parser<String> createParser(Tag tag) {
+    return Parsers.token(t -> {
+      Object val = t.value();
+      if (val instanceof Tokens.Fragment) {
+        Tokens.Fragment c = (Tokens.Fragment) val;
+        return tag.equals(c.tag()) ? c.text() : null;
+      }
+      return null;
+    });
+  }
+
+  public static final Parser<String> VAR_PARSER = createParser(Tag.VARIABLE);
+  public static final Parser<String> FIELDDEF_PARSER = createParser(Tag.FIELDDEF);
 
   static Parser<?> tokenizer = Parsers.or(
+    FIELDDEF_TOKENIZER,
     terms.tokenizer(),
     Terminals.StringLiteral.DOUBLE_QUOTE_TOKENIZER,
     VAR_TOKENIZER,
     Terminals.IntegerLiteral.TOKENIZER,
-    Terminals.Identifier.TOKENIZER);
+    Terminals.Identifier.TOKENIZER
+    );
 
   public static Parser<AST.IntValue> integer() {
     return Terminals.IntegerLiteral.PARSER.map(s -> AST.intValue(Double.parseDouble(s)));
@@ -55,6 +71,8 @@ public class TruffleArrowParser {
   public static Parser<AST.Variable> variable() {
     return VAR_PARSER.map(AST::variable);
   }
+
+  public static Parser<AST.FieldDef> fieldDef() { return FIELDDEF_PARSER.map(AST::fieldDef); }
 
   public static Parser<AST.Expression> value() {
     return Parsers.or(mapMember(), newMap(),  variable(), integer(), string(),
@@ -105,7 +123,7 @@ public class TruffleArrowParser {
                                            .between(terms.token("("), terms.token(")"))
                                            .next(path -> statements()
                                               .next(statements -> terms.token("yield")
-                                                .next(yield -> string().sepBy(terms.token(",")).between(terms.token("("), terms.token(")"))
+                                                .next(yield -> fieldDef().sepBy(terms.token(",")).between(terms.token("("), terms.token(")"))
                                                   .map(fields -> AST.loop(path, statements, fields))))));
   }
 
