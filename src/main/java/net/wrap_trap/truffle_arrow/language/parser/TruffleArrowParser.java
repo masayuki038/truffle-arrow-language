@@ -1,5 +1,6 @@
 package net.wrap_trap.truffle_arrow.language.parser;
 
+import net.wrap_trap.truffle_arrow.language.FieldType;
 import net.wrap_trap.truffle_arrow.language.parser.ast.AST;
 import org.jparsec.*;
 import org.jparsec.pattern.CharPredicates;
@@ -23,7 +24,15 @@ public class TruffleArrowParser {
   static Pattern varToken = isChar('$').next(Patterns.or(isChar(CharPredicates.IS_ALPHA), isChar('_')).many1());
   static Parser<String> varParser = varToken.toScanner("variable").source();
 
-  static Pattern fieldDefToken = isChar(CharPredicates.IS_ALPHA_).next(isChar(CharPredicates.IS_ALPHA_NUMERIC_).many()).next(isChar(':')).next(isChar(CharPredicates.IS_ALPHA_).many1());
+  static Pattern fieldDefToken =
+    isChar(CharPredicates.IS_ALPHA_)
+      .next(isChar(CharPredicates.IS_ALPHA_NUMERIC_).many())
+      .next(isChar(':'))
+      .next(Patterns.or(
+        Patterns.string(FieldType.INT.toString()),
+        Patterns.string(FieldType.BIGINT.toString()),
+        Patterns.string(FieldType.DOUBLE.toString()),
+        Patterns.string(FieldType.STRING.toString())));
   static Parser<String> fieldDefParser = fieldDefToken.toScanner("fieldDef").source();
 
   enum Tag {

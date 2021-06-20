@@ -16,6 +16,7 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 
 import net.wrap_trap.truffle_arrow.language.ArrowFieldType;
 import net.wrap_trap.truffle_arrow.language.ArrowUtils;
+import net.wrap_trap.truffle_arrow.language.FieldType;
 import net.wrap_trap.truffle_arrow.language.truffle.node.type.ArrowTimeSec;
 import net.wrap_trap.truffle_arrow.language.truffle.node.type.FieldDef;
 import org.apache.arrow.memory.BufferAllocator;
@@ -137,7 +138,7 @@ public class ExprLoop extends ExprBase {
     List<FieldVector> fieldVectors = new ArrayList<>();
     fields.stream().forEach(field -> {
       String name = field.getName();
-      String type = field.getType();
+      FieldType type = field.getType();
       FrameSlot slot = descriptor.findFrameSlot(name);
       if (slot == null) {
         throw new IllegalArgumentException("FrameSlot not found: " + name);
@@ -145,16 +146,16 @@ public class ExprLoop extends ExprBase {
       FieldVector fieldVector;
       // TODO handle DATE / TIME / TIMESTAMP
       switch (type) {
-        case "INT":
+        case INT:
           fieldVector = new IntVector(name, allocator);
           break;
-        case "BIGINT":
+        case BIGINT:
           fieldVector = new BigIntVector(name, allocator);
           break;
-        case "DOUBLE":
+        case DOUBLE:
           fieldVector = new Float8Vector(name, allocator);
           break;
-        case "STRING":
+        case STRING:
           fieldVector = new VarCharVector(name, allocator);
           break;
         default:
