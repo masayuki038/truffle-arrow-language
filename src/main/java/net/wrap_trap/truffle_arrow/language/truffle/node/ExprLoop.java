@@ -83,7 +83,8 @@ public class ExprLoop extends ExprBase {
     Map<String, FieldVector> fieldVectorMap = new HashMap<>();
 
     FrameDescriptor descriptor = frame.getFrameDescriptor();
-    for (int i = 0; i < fieldVectors.get(0).getValueCount(); i++) {
+    int i;
+    for (i = 0; i < fieldVectors.get(0).getValueCount(); i++) {
       for (int j = 0; j < fieldVectors.size(); j++) {
         FieldVector fieldVector = fieldVectors.get(j);
         FrameSlot slot = descriptor.findFrameSlot(fieldVector.getName());
@@ -128,6 +129,7 @@ public class ExprLoop extends ExprBase {
       }
       setValues(frame, descriptor, fieldVectorMap, fieldDefs, i);
     }
+    out.setRowCount(i);
     return out;
   }
 

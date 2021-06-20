@@ -7,9 +7,11 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
 import net.wrap_trap.truffle_arrow.language.truffle.node.ExprReadLocal;
-import net.wrap_trap.truffle_arrow.language.truffle.node.ExprReadLocalNodeGen;
 import net.wrap_trap.truffle_arrow.language.truffle.node.ReturnException;
 import net.wrap_trap.truffle_arrow.language.truffle.node.Statements;
+import org.apache.arrow.vector.VectorSchemaRoot;
+
+import java.util.List;
 
 
 public class TruffleArrowRootNode extends RootNode {
@@ -27,6 +29,10 @@ public class TruffleArrowRootNode extends RootNode {
     try {
       statements.executeVoid(frame);
     } catch (ReturnException e) {
+      Object result = e.getResult();
+      if (result instanceof List) {
+        return new Result((List<VectorSchemaRoot>) result);
+      }
       return e.getResult();
     } catch (UnsupportedSpecializationException e) {
       Node caused = e.getNode();

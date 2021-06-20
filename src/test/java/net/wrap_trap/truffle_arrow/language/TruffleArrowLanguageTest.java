@@ -1,5 +1,6 @@
 package net.wrap_trap.truffle_arrow.language;
 
+import net.wrap_trap.truffle_arrow.language.truffle.Row;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.PolyglotException;
 import org.junit.BeforeClass;
@@ -8,6 +9,7 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
@@ -47,20 +49,30 @@ public class TruffleArrowLanguageTest {
       "echo $ret;" +
       "return $ret;";
     Context ctx = Context.create("ta");
-    System.out.println((ctx.eval("ta", script).asHostObject()).toString());
-    //assertThat(ctx.eval("ta", script).asLong(), is(10L));
+    List<List<Object>> rows = ctx.eval("ta", script).as(List.class);
+    assertThat(rows.size(), is(10));
+    for (int i = 0; i < 10; i ++) {
+      List<Object> row = rows.get(i);
+      assertThat(row.get(0), is(i)); // F_INT
+      assertThat(row.get(1), is(10L - i)); // F_BIGINT
+    }
   }
 
   @Test
   public void testAddNewVariableToOutputs() {
     String script =
-      "loop (\"target/all_fields.arrow\") {\n" +
+      "return loop (\"target/all_fields.arrow\") {\n" +
         "  echo $F_BIGINT;\n" +
         "  $a = \"hoge\";\n" +
         "  $b = 1;\n" +
-        "} yield (F_BIGINT:BIGINT, a:STRING)\n";
+        "} yield (F_BIGINT:BIGINT, a:STRING);\n";
     Context ctx = Context.create("ta");
-    ctx.eval("ta", script);
+    List<List<Object>> rows = ctx.eval("ta", script).as(List.class);
+    for (int i = 0; i < 10; i ++) {
+      List<Object> row = rows.get(i);
+      assertThat(row.get(0), is(10L - i)); // F_BIGINT
+      assertThat(row.get(1), is("hoge"));
+    }
   }
 
   @Test
