@@ -3,17 +3,13 @@ package net.wrap_trap.truffle_arrow.language.truffle;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.FrameSlotKind;
-import lombok.RequiredArgsConstructor;
 import net.wrap_trap.truffle_arrow.language.parser.ast.AST;
 import net.wrap_trap.truffle_arrow.language.truffle.node.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-
-@RequiredArgsConstructor
 public class TruffleArrowTreeGenerator {
-  private final TruffleArrowLanguage lang;
 
   public Statements visit(FrameDescriptor frame, List<AST.ASTNode> script) {
     StatementBase[] statements = script.stream()
@@ -31,8 +27,6 @@ public class TruffleArrowTreeGenerator {
       return visit(frame, (AST.If) ast);
     } else if (ast instanceof AST.Assignment) {
       return visit(frame, (AST.Assignment) ast);
-    } else if (ast instanceof AST.Loop) {
-      return visit(frame, (AST.Loop) ast);
     }
     throw new IllegalStateException("Unknown ASTNode: " + ast);
   }
@@ -56,7 +50,7 @@ public class TruffleArrowTreeGenerator {
     return new ExprIf(cond, new Statements(statements), null);
   }
 
-  StatementLoop visit(FrameDescriptor frame, AST.Loop loopNode) {
+  ExprLoop visit(FrameDescriptor frame, AST.Loop loopNode) {
     ExprStringNode pathNode  = visit(frame, loopNode.getPath());
     List<StatementBase> list =
       loopNode.getStatements().stream().map(s -> visit(frame, s)).collect(Collectors.toList());
@@ -64,7 +58,7 @@ public class TruffleArrowTreeGenerator {
     list.toArray(array);
     List<ExprFieldDef> fields =
       loopNode.getFields().stream().map(s -> visit(frame, s)).collect(Collectors.toList());
-    return new StatementLoop(pathNode, new Statements(array), fields);
+    return new ExprLoop(pathNode, new Statements(array), fields);
   }
 
    ExprBase visit(FrameDescriptor frame, AST.Expression exp) {
@@ -76,6 +70,8 @@ public class TruffleArrowTreeGenerator {
       return visit(frame, (AST.IntValue) exp);
     } else if (exp instanceof AST.StringValue) {
       return visit(frame, (AST.StringValue) exp);
+    } else if (exp instanceof AST.Loop) {
+      return visit(frame, (AST.Loop) exp);
     }
     throw new RuntimeException("Unknown AST.Expression: " + exp);
   }

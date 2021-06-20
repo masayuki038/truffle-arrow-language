@@ -20,7 +20,7 @@ public class TruffleArrowLanguage extends TruffleLanguage {
   protected CallTarget parse(ParsingRequest request) throws Exception {
     Parser<List<AST.ASTNode>> parser = TruffleArrowParser.createParser();
     List<AST.ASTNode> script = parser.parse(request.getSource().getReader());
-    TruffleArrowTreeGenerator generator = new TruffleArrowTreeGenerator(this);
+    TruffleArrowTreeGenerator generator = new TruffleArrowTreeGenerator();
     FrameDescriptor frame = new FrameDescriptor();
     Statements statements = generator.visit(frame, script);
     TruffleArrowRootNode root = new TruffleArrowRootNode(this, frame, statements);

@@ -25,7 +25,7 @@ import org.apache.arrow.vector.util.Text;
 
 
 @NodeInfo(shortName = "loop")
-public class StatementLoop extends StatementBase {
+public class ExprLoop extends ExprBase {
 
   @Child
   private ExprStringNode dirPath;
@@ -35,23 +35,26 @@ public class StatementLoop extends StatementBase {
 
   private List<ExprFieldDef> fields;
 
-  public StatementLoop(ExprStringNode dirPath, Statements statements, List<ExprFieldDef> fields) {
+  public ExprLoop(ExprStringNode dirPath, Statements statements, List<ExprFieldDef> fields) {
     this.dirPath = dirPath;
     this.statements = statements;
     this.fields = fields;
   }
 
   @Override
-  public void executeVoid(VirtualFrame frame) {
+  public Object executeGeneric(VirtualFrame frame) {
     String path = this.dirPath.executeString(frame);
     try {
-      List<VectorSchemaRoot> vectorSchemaRoots = this.loadArrowFile(path);
-      for (VectorSchemaRoot vectorSchemaRoot: vectorSchemaRoots) {
-        this.loop(frame, frame.getFrameDescriptor(), vectorSchemaRoot);
-      }
+      List<VectorSchemaRoot> loaded = this.loadArrowFile(path);
+      return loaded.stream().map(v -> this.loop(frame, v)).collect(Collectors.toList());
     } catch (IOException e) {
       throw new IllegalStateException(e);
     }
+  }
+
+  @Override
+  public void executeVoid(VirtualFrame frame) {
+    executeGeneric(frame);
   }
 
   private List<VectorSchemaRoot> loadArrowFile(String path) throws IOException {
@@ -71,19 +74,15 @@ public class StatementLoop extends StatementBase {
     }
   }
 
-  protected void loop(VirtualFrame frame, FrameDescriptor descriptor, VectorSchemaRoot vectorSchemaRoot) {
-
+  protected VectorSchemaRoot loop(VirtualFrame frame, VectorSchemaRoot vectorSchemaRoot) {
     List<FieldVector> fieldVectors = vectorSchemaRoot.getFieldVectors();
-    if (fieldVectors.size() == 0) {
-      return;
-    }
-
     List<FieldDef> fieldDefs = this.fields.stream().map(
       field -> (FieldDef) field.executeGeneric(frame)).collect(Collectors.toList());
 
     VectorSchemaRoot out = null;
     Map<String, FieldVector> fieldVectorMap = new HashMap<>();
 
+    FrameDescriptor descriptor = frame.getFrameDescriptor();
     for (int i = 0; i < fieldVectors.get(0).getValueCount(); i++) {
       for (int j = 0; j < fieldVectors.size(); j++) {
         FieldVector fieldVector = fieldVectors.get(j);
@@ -129,6 +128,7 @@ public class StatementLoop extends StatementBase {
       }
       setValues(frame, descriptor, fieldVectorMap, fieldDefs, i);
     }
+    return out;
   }
 
   public static VectorSchemaRoot createVectorSchemaRoot(FrameDescriptor descriptor, List<FieldDef> fields, BufferAllocator allocator) {

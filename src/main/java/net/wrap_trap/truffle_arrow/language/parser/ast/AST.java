@@ -123,7 +123,7 @@ public class AST {
   }
 
   @Value
-  public static class Loop implements ASTNode {
+  public static class Loop implements Expression {
     StringValue path;
     List<ASTNode> statements;
     List<FieldDef> fields;

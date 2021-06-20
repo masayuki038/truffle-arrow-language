@@ -75,7 +75,7 @@ public class TruffleArrowParser {
   public static Parser<AST.FieldDef> fieldDef() { return FIELDDEF_PARSER.map(AST::fieldDef); }
 
   public static Parser<AST.Expression> value() {
-    return Parsers.or(mapMember(), newMap(),  variable(), integer(), string(),
+    return Parsers.or(loop(), mapMember(), newMap(), variable(), integer(), string(),
       terms.token("(").next(pr -> expression().followedBy(terms.token(")"))));
   }
 
