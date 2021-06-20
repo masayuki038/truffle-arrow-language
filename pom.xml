@@ -7,13 +7,17 @@
     <groupId>net.wrap_trap</groupId>
     <artifactId>truffle-arrow-language</artifactId>
     <version>1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
 
     <properties>
         <maven.compiler.target>1.8</maven.compiler.target>
         <maven.compiler.source>1.8</maven.compiler.source>
+        <graal.version>20.3.0</graal.version>
+        <jar.dir>${project.build.directory}/jars</jar.dir>
     </properties>
 
     <modules>
         <module>language</module>
+        <module>launcher</module>
     </modules>
 </project>
