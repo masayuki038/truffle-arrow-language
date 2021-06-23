@@ -80,12 +80,20 @@ public class ExprLoop extends ExprBase {
     List<FieldDef> fieldDefs = this.fields.stream().map(
       field -> (FieldDef) field.executeGeneric(frame)).collect(Collectors.toList());
 
-    VectorSchemaRoot out = null;
     Map<String, FieldVector> fieldVectorMap = new HashMap<>();
+    VectorSchemaRoot out = createVectorSchemaRoot(
+      fieldDefs, ArrowUtils.createAllocator("out"), vectorSchemaRoot.getRowCount());
+    for (FieldVector fieldVector: out.getFieldVectors()) {
+      fieldVectorMap.put(fieldVector.getField().getName(), fieldVector);
+    }
+
+    for (FieldVector fieldVector: out.getFieldVectors()) {
+      fieldVectorMap.put(fieldVector.getField().getName(), fieldVector);
+    }
 
     FrameDescriptor descriptor = frame.getFrameDescriptor();
     int i;
-    for (i = 0; i < fieldVectors.get(0).getValueCount(); i++) {
+    for (i = 0; i < vectorSchemaRoot.getRowCount(); i++) {
       for (int j = 0; j < fieldVectors.size(); j++) {
         FieldVector fieldVector = fieldVectors.get(j);
         FrameSlot slot = descriptor.findFrameSlot(fieldVector.getName());
@@ -122,27 +130,17 @@ public class ExprLoop extends ExprBase {
         }
       }
       this.statements.executeVoid(frame);
-      if (out == null) {
-        out = createVectorSchemaRoot(descriptor, fieldDefs, ArrowUtils.createAllocator("out"));
-        for (FieldVector fieldVector: out.getFieldVectors()) {
-          fieldVectorMap.put(fieldVector.getField().getName(), fieldVector);
-        }
-      }
       setValues(frame, descriptor, fieldVectorMap, fieldDefs, i);
     }
     out.setRowCount(i);
     return out;
   }
 
-  public static VectorSchemaRoot createVectorSchemaRoot(FrameDescriptor descriptor, List<FieldDef> fields, BufferAllocator allocator) {
+  public static VectorSchemaRoot createVectorSchemaRoot(List<FieldDef> fields, BufferAllocator allocator, int initialCapacity) {
     List<FieldVector> fieldVectors = new ArrayList<>();
     fields.stream().forEach(field -> {
       String name = field.getName();
       FieldType type = field.getType();
-      FrameSlot slot = descriptor.findFrameSlot(name);
-      if (slot == null) {
-        throw new IllegalArgumentException("FrameSlot not found: " + name);
-      }
       FieldVector fieldVector;
       // TODO handle DATE / TIME / TIMESTAMP
       switch (type) {
@@ -162,6 +160,7 @@ public class ExprLoop extends ExprBase {
           throw new IllegalArgumentException(
             "Unexpected field type. field: %s, type: %s".format(name, type));
       }
+      fieldVector.setInitialCapacity(initialCapacity);
       fieldVector.allocateNew();
       fieldVectors.add(fieldVector);
     });
