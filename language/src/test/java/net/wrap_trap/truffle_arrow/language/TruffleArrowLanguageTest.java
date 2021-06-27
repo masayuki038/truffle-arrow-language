@@ -9,6 +9,7 @@ import org.junit.Test;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
@@ -110,6 +111,45 @@ public class TruffleArrowLanguageTest {
     List<List<Object>> rows = ctx.eval("ta", script).as(List.class);
     assertThat(rows.size(), is(1));
     assertThat(rows.get(0).get(0), is(10));
+  }
+
+  @Test
+  public void testMap() {
+    String script =
+      "$map = {};" +
+        "$out = arrays(key:INT, value:BIGINT);" +
+        "loop (\"target/all_fields.arrow\") {\n" +
+        "  $map[$F_INT] = $F_BIGINT;\n" +
+        "}\n" +
+        "store($out, $map);" +
+        "return $out;";
+    Context ctx = Context.create("ta");
+    List<List<Object>> rows = ctx.eval("ta", script).as(List.class);
+    assertThat(rows.size(), is(10));
+    assertThat(rows.get(0).get(0), is(0));
+    assertThat(rows.get(0).get(1), is(10L));
+    assertThat(rows.get(9).get(0), is(9));
+    assertThat(rows.get(9).get(1), is(1L));
+  }
+
+  @Test
+  public void testMap2() {
+    String script =
+      "$map = {};" +
+        "$out = arrays(key:INT, value:INT);" +
+        "loop (\"target/all_fields.arrow\") {\n" +
+        "  $tmp = $map[$F_INT];\n" +
+        "  $map[$F_INT] = get($map[$F_INT], 0) + 1;\n" +
+        "}\n" +
+        "store($out, $map);" +
+        "return $out;";
+    Context ctx = Context.create("ta");
+    List<List<Object>> rows = ctx.eval("ta", script).as(List.class);
+    assertThat(rows.size(), is(10));
+    assertThat(rows.get(0).get(0), is(0));
+    assertThat(rows.get(0).get(1), is(1));
+    assertThat(rows.get(9).get(0), is(9));
+    assertThat(rows.get(9).get(1), is(1));
   }
 
   @Test

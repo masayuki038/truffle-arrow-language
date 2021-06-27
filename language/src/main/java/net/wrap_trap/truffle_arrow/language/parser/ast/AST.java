@@ -105,21 +105,22 @@ public class AST {
   @Value
   public static class MapMember implements Expression {
     Variable map;
-    String name;
+    Expression member;
   }
 
-  public static MapMember mapMember(Variable map, String name) {
-    return new MapMember(map, name);
+  public static MapMember mapMember(Variable map, Expression member) {
+    return new MapMember(map, member);
   }
 
   @Value
   public static class MapMemberAssignment implements ASTNode {
-    MapMember mapMember;
-    Expression expression;
+    Variable map;
+    Expression member;
+    Expression value;
   }
 
-  public static MapMemberAssignment mapMemberAssignment(MapMember mapMember, Expression expression) {
-    return new MapMemberAssignment(mapMember, expression);
+  public static MapMemberAssignment mapMemberAssignment(Variable map, Expression member, Expression value) {
+    return new MapMemberAssignment(map, member, value);
   }
 
   @Value
@@ -149,6 +150,16 @@ public class AST {
 
   public static Arrays arrays(List<FieldDef> fieldDefs) {
     return new Arrays(fieldDefs);
+  }
+
+  @Value
+  public static class Get implements Expression {
+    Expression expr;
+    Expression orElse;
+  }
+
+  public static Get get(Expression expr, Expression orElse) {
+    return new Get(expr, orElse);
   }
 
   @Value

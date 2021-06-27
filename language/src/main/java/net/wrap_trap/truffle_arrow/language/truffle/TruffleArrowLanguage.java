@@ -31,9 +31,4 @@ public class TruffleArrowLanguage extends TruffleLanguage {
   protected TruffleArrowContext createContext(Env env) {
     return new TruffleArrowContext();
   }
-
-  @Override
-  protected boolean isObjectOfLanguage(Object object) {
-    return false;
-  }
 }

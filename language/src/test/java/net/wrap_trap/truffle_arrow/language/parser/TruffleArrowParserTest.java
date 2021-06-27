@@ -12,19 +12,19 @@ import static org.junit.Assert.assertThat;
 
 
 public class TruffleArrowParserTest {
+
   private final static String SAMPLE =
       "echo \"a\";\n" +
       "echo \"b\";\n" +
       "$a = 1;\n" +
       "if ($a == 0) echo $a;\n" +
       "$b = {};\n" +
-      "$b.foo = 1;\n" +
-      "$b.bar = \"hoge\";\n" +
-      "echo $b.bar;\n" +
+      "$b[\"foo\"] = 1;\n" +
+      "$b[\"bar\"] = \"hoge\";\n" +
+      "echo $b[\"bar\"];\n" +
       "if (($a == 0) && ($b == 1)) echo $a;\n" +
       "if ((($a == 0) || ($b == 1)) && ($c == 2)) echo $a;\n" +
       "if (($a like \"%a%\") || ($b like \"_b_\")) echo $a;\n";
-
 
   @Test
   public void testIntValue() {
@@ -98,7 +98,7 @@ public class TruffleArrowParserTest {
     assertThat(parser.parse("$a;"), is(variable("$a")));
     assertThat(parser.parse("$a=$a+1;"), is(assignment(variable("$a"), binary(variable("$a"), intValue(1), "+"))));
     assertThat(parser.parse("echo \"aaa\";"), is(command("echo", stringValue("aaa"))));
-    assertThat(parser.parse("$a.a1=\"hoge\";"), is(mapMemberAssignment(mapMember(variable("$a"), "a1"), stringValue("hoge"))));
+    assertThat(parser.parse("$a[\"a1\"]=\"hoge\";"), is(mapMemberAssignment(variable("$a"), stringValue("a1"), stringValue("hoge"))));
   }
 
   @Test
@@ -139,6 +139,14 @@ public class TruffleArrowParserTest {
   }
 
   @Test
+  public void testGet() {
+    Parser<Get> parser = parser(new TruffleArrowParser().get());
+    assertThat(parser.parse("get(1, 0)"), is(get(intValue(1), intValue(0))));
+    assertThat(parser.parse("get($map[$foo], 0)"), is(get(mapMember(variable("$map"), variable("$foo")), intValue(0))));
+    assertThat(parser.parse("get($map[\"foo\"], 1)"), is(get(mapMember(variable("$map"), stringValue("foo")), intValue(1))));
+  }
+
+  @Test
   public void testNewMap() {
     Parser<Expression> parser = parser(new TruffleArrowParser().newMap());
     assertThat(parser.parse("{}"), is(mapValue()));
@@ -148,15 +156,19 @@ public class TruffleArrowParserTest {
   @Test
   public void testMapMember() {
     Parser<MapMember> parser = parser(new TruffleArrowParser().mapMember());
-    assertThat(parser.parse("$a.foo"), is(mapMember(variable("$a"), "foo")));
-    assertThat(parser.parse("$a.a1"), is(mapMember(variable("$a"), "a1")));
+    assertThat(parser.parse("$a[\"foo\"]"), is(mapMember(variable("$a"), stringValue("foo"))));
+    assertThat(parser.parse("$a[1]"), is(mapMember(variable("$a"), intValue(1))));
+    assertThat(parser.parse("$a[1.1]"), is(mapMember(variable("$a"), doubleValue(1.1))));
+    assertThat(parser.parse("$a[$b]"), is(mapMember(variable("$a"), variable("$b"))));
   }
 
   @Test
   public void testMapMemberAssignment() {
     Parser<MapMemberAssignment> parser = parser(new TruffleArrowParser().mapMemberAssignment());
-    assertThat(parser.parse("$a.foo = 1"), is(mapMemberAssignment(mapMember(variable("$a"), "foo"), intValue(1))));
-    assertThat(parser.parse("$a.a1=\"hoge\""), is(mapMemberAssignment(mapMember(variable("$a"), "a1"), stringValue("hoge"))));
+    assertThat(parser.parse("$a[\"foo\"] = 1"), is(mapMemberAssignment(variable("$a"), stringValue("foo"), intValue(1))));
+    assertThat(parser.parse("$a[1]=\"hoge\""), is(mapMemberAssignment(variable("$a"), intValue(1), stringValue("hoge"))));
+    assertThat(parser.parse("$a[1.1]=2.2"), is(mapMemberAssignment(variable("$a"), doubleValue(1.1), doubleValue(2.2))));
+    assertThat(parser.parse("$a[$b]=$c"), is(mapMemberAssignment(variable("$a"), variable("$b"), variable("$c"))));
   }
 
   @Test

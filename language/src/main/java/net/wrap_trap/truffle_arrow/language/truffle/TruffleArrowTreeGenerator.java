@@ -1,5 +1,6 @@
 package net.wrap_trap.truffle_arrow.language.truffle;
 
+import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.FrameSlotKind;
@@ -32,6 +33,8 @@ public class TruffleArrowTreeGenerator {
       return visit(frame, (AST.Loop) ast);
     } else if (ast instanceof AST.Store) {
       return visit(frame, (AST.Store) ast);
+    } else if (ast instanceof AST.MapMemberAssignment) {
+      return visit(frame, (AST.MapMemberAssignment) ast);
     }
     throw new IllegalStateException("Unknown ASTNode: " + ast);
   }
@@ -77,6 +80,12 @@ public class TruffleArrowTreeGenerator {
       return visit(frame, (AST.DoubleValue) exp);
     } else if (exp instanceof AST.Arrays) {
       return visit(frame, (AST.Arrays) exp);
+    } else if (exp instanceof AST.Get) {
+      return visit(frame, (AST.Get) exp);
+    } else if (exp instanceof AST.MapValue) {
+      return visit(frame, (AST.MapValue) exp);
+    } else if (exp instanceof AST.MapMember) {
+      return visit(frame, (AST.MapMember) exp);
     }
     throw new RuntimeException("Unknown AST.Expression: " + exp);
   }
@@ -107,7 +116,7 @@ public class TruffleArrowTreeGenerator {
     return StatementWriteLocalNodeGen.create(visit(frame, assign.getExpression()), slot);
   }
 
-  ExprBase visit(FrameDescriptor frame, AST.Variable variable) {
+  ExprReadLocal visit(FrameDescriptor frame, AST.Variable variable) {
     FrameSlot slot = frame.findOrAddFrameSlot(variable.getVariableName(), FrameSlotKind.Illegal);
     return ExprReadLocalNodeGen.create(slot);
   }
@@ -128,6 +137,29 @@ public class TruffleArrowTreeGenerator {
     List<ExprFieldDef> fields =
       arraysNode.getFieldDefs().stream().map(s -> visit(frame, s)).collect(Collectors.toList());
     return new ExprArrays(fields);
+  }
+
+  ExprGet visit(FrameDescriptor frame, AST.Get getNode) {
+    ExprBase expr = visit(frame, getNode.getExpr());
+    ExprBase orElse = visit(frame, getNode.getOrElse());
+    return new ExprGet(expr, orElse);
+  }
+
+  ExprNewMapLiteral visit(FrameDescriptor frame, AST.MapValue mapValueNode) {
+    return new ExprNewMapLiteral();
+  }
+
+  ExprMapMember visit(FrameDescriptor frame, AST.MapMember mapMember) {
+    ExprReadLocal readLocal = visit(frame, mapMember.getMap());
+    ExprBase member = visit(frame, mapMember.getMember());
+    return new ExprMapMember(readLocal, member);
+  }
+
+  StatementMapMemberWrite visit(FrameDescriptor frame, AST.MapMemberAssignment mapMemberAssignment) {
+    ExprReadLocal readLocal = visit(frame, mapMemberAssignment.getMap());
+    ExprBase member = visit(frame, mapMemberAssignment.getMember());
+    ExprBase value = visit(frame, mapMemberAssignment.getValue());
+    return new StatementMapMemberWrite(readLocal, member, value);
   }
 
   StatementStore visit(FrameDescriptor frame, AST.Store storeNode) {

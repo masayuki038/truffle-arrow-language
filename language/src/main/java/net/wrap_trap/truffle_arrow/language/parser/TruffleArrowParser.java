@@ -15,8 +15,8 @@ import static org.jparsec.pattern.Patterns.isChar;
 
 public class TruffleArrowParser {
   static String[] operators = {
-    "<", ">", "+", "-", "(", ")", ";", "=", ",", "{", "}", "==", ".", "&&", "||", "like"};
-  static String[] keywords = {"echo", "if", "loop", "arrays", "store", "return"};
+    "<", ">", "+", "-", "(", ")", ";", "=", ",", "{", "}", "[", "]", "==", ".", "&&", "||", "like"};
+  static String[] keywords = {"echo", "if", "loop", "arrays", "store", "get", "return"};
 
   static Parser<Void> ignored = Scanners.WHITESPACES.optional();
   static Terminals terms = Terminals.operators(operators).words(Scanners.IDENTIFIER).keywords(keywords).build();
@@ -96,7 +96,7 @@ public class TruffleArrowParser {
   public static Parser<AST.FieldDef> fieldDef() { return FIELDDEF_PARSER.map(AST::fieldDef); }
 
   public static Parser<AST.Expression> value() {
-    return Parsers.or(arrays(), mapMember(), newMap(), variable(), integer(), double_(), string(),
+    return Parsers.or(get(), arrays(), mapMember(), newMap(), variable(), integer(), double_(), string(),
       terms.token("(").next(pr -> expression().followedBy(terms.token(")"))));
   }
 
@@ -132,6 +132,16 @@ public class TruffleArrowParser {
     return terms.token("arrays")
       .next(a -> fieldDef().sepBy(terms.token(",")).between(terms.token("("), terms.token(")"))
         .map(fields -> AST.arrays(fields)));
+  }
+
+  public static Parser<AST.Get> get() {
+    return terms.token("get")
+            .next(g -> terms.token("(")
+              .next(p1 -> expression()
+                .next(v -> terms.token(",")
+                  .next(c -> expression()
+                    .next(orElse -> terms.token(")")
+                      .map(p2 -> AST.get(v, orElse)))))));
   }
 
   public static Parser<AST.Store> store() {
@@ -178,13 +188,15 @@ public class TruffleArrowParser {
   }
 
   public static Parser<AST.MapMember> mapMember() {
-    return variable().followedBy(terms.token("."))
-             .next(v -> identifier().map(i -> AST.mapMember(v, i)));
+    return variable()
+              .next(v -> expression()
+                .between(terms.token("["), terms.token("]"))
+                .map(e -> AST.mapMember(v, e)));
   }
 
   public static Parser<AST.MapMemberAssignment> mapMemberAssignment() {
     return mapMember().followedBy(terms.token("="))
-             .next(member -> expression().map(exp -> AST.mapMemberAssignment(member, exp)));
+             .next(member -> expression().map(exp -> AST.mapMemberAssignment(member.getMap(), member.getMember(), exp)));
 
   }
 
