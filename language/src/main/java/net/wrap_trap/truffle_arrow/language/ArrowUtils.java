@@ -1,20 +1,12 @@
 package net.wrap_trap.truffle_arrow.language;
 
-import com.oracle.truffle.api.frame.FrameSlot;
-import com.oracle.truffle.api.frame.FrameSlotKind;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import org.apache.arrow.memory.BufferAllocator;
 import org.apache.arrow.memory.RootAllocator;
-import org.apache.arrow.vector.*;
-import org.apache.arrow.vector.types.pojo.Field;
-import org.apache.arrow.vector.util.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
-import java.util.stream.Collectors;
 
 public class ArrowUtils {
 

@@ -1,6 +1,5 @@
 package net.wrap_trap.truffle_arrow.language;
 
-import net.wrap_trap.truffle_arrow.language.truffle.Row;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.PolyglotException;
 import org.junit.BeforeClass;
@@ -15,6 +14,7 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
+
 
 public class TruffleArrowLanguageTest {
 
@@ -41,13 +41,15 @@ public class TruffleArrowLanguageTest {
   @Test
   public void testPushedVariables() throws IOException {
     String script =
-      "$ret = loop (\"target/all_fields.arrow\") {\n" +
+      "$out = arrays(F_INT:INT, F_BIGINT:BIGINT);" +
+      "loop (\"target/all_fields.arrow\") {\n" +
       "  echo $F_INT;\n" +
       "  echo $F_BIGINT;\n" +
       "  $F_BIGINT;\n" +
-      "} yield (F_INT:INT, F_BIGINT:BIGINT);\n" +
-      "echo $ret;" +
-      "return $ret;";
+      "  store($out, $F_INT, $F_BIGINT);\n" +
+      "}\n" +
+      "echo $out;" +
+      "return $out;";
     Context ctx = Context.create("ta");
     List<List<Object>> rows = ctx.eval("ta", script).as(List.class);
     assertThat(rows.size(), is(10));
@@ -61,11 +63,14 @@ public class TruffleArrowLanguageTest {
   @Test
   public void testAddNewVariableToOutputs() {
     String script =
-      "return loop (\"target/all_fields.arrow\") {\n" +
+      "$out = arrays(F_BIGINT:BIGINT, a:STRING);" +
+      "loop (\"target/all_fields.arrow\") {\n" +
         "  echo $F_BIGINT;\n" +
         "  $a = \"hoge\";\n" +
         "  $b = 1;\n" +
-        "} yield (F_BIGINT:BIGINT, a:STRING);\n";
+        "  store($out, $F_BIGINT, $a);" +
+        "}\n" +
+        "return $out;";
     Context ctx = Context.create("ta");
     List<List<Object>> rows = ctx.eval("ta", script).as(List.class);
     for (int i = 0; i < 10; i ++) {
@@ -76,11 +81,43 @@ public class TruffleArrowLanguageTest {
   }
 
   @Test
+  public void testSum() {
+    String script =
+      "$sum = 0;" +
+        "loop (\"target/all_fields.arrow\") {\n" +
+        "  echo $F_INT;\n" +
+        "  $sum = $sum + $F_INT;\n" +
+        "}\n" +
+        "return $sum;";
+    Context ctx = Context.create("ta");
+    long sum = ctx.eval("ta", script).asLong();
+    assertThat(sum, is(45L));
+  }
+
+
+  @Test
+  public void testCount() {
+    String script =
+      "$cnt = 0;" +
+        "$out = arrays(cnt:INT);" +
+        "loop (\"target/all_fields.arrow\") {\n" +
+        "  echo $F_INT;\n" +
+        "  $cnt = $cnt + 1;\n" +
+        "}\n" +
+        "store($out, $cnt);\n" +
+        "return $out;";
+    Context ctx = Context.create("ta");
+    List<List<Object>> rows = ctx.eval("ta", script).as(List.class);
+    assertThat(rows.size(), is(1));
+    assertThat(rows.get(0).get(0), is(10));
+  }
+
+  @Test
   public void testRefIllegalVariableName() {
     String script =
       "loop (\"target/all_fields.arrow\") {\n" +
         "  echo $F_BIGIN;\n" +
-        "} yield (F_BIGIN:BIGINT)\n";
+        "}\n";
     try {
       Context ctx = Context.create("ta");
       ctx.eval("ta", script);
@@ -89,12 +126,14 @@ public class TruffleArrowLanguageTest {
       assertThat(e.getMessage(), containsString("Failed to reference a local variable: F_BIGIN"));
     }
   }
+
   @Test
   public void testRefIllegalVariableType() {
     String script =
+      "$out = arrays(F_BIGINT:BIGIN);\n" +
       "loop (\"target/all_fields.arrow\") {\n" +
         "  echo $F_BIGINT;\n" +
-        "} yield (F_BIGINT:BIGIN)\n";
+        "}\n";
     try {
       Context ctx = Context.create("ta");
       ctx.eval("ta", script);

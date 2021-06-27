@@ -12,11 +12,20 @@ public class AST {
 
   @Value
   public static class IntValue implements Expression {
+    int value;
+  }
+
+  public static IntValue intValue(int value) {
+    return new IntValue(value);
+  }
+
+  @Value
+  public static class DoubleValue implements Expression {
     double value;
   }
 
-  public static IntValue intValue(double value) {
-    return new IntValue(value);
+  public static DoubleValue doubleValue(double value) {
+    return new DoubleValue(value);
   }
 
   @Value
@@ -124,13 +133,30 @@ public class AST {
   }
 
   @Value
-  public static class Loop implements Expression {
+  public static class Loop implements ASTNode {
     StringValue path;
     List<ASTNode> statements;
-    List<FieldDef> fields;
   }
 
-  public static Loop loop(StringValue path, List<ASTNode> statements, List<FieldDef> fields) {
-    return new Loop(path, statements, fields);
+  public static Loop loop(StringValue path, List<ASTNode> statements) {
+    return new Loop(path, statements);
+  }
+
+  @Value
+  public static class Arrays implements Expression {
+    List<FieldDef> fieldDefs;
+  }
+
+  public static Arrays arrays(List<FieldDef> fieldDefs) {
+    return new Arrays(fieldDefs);
+  }
+
+  @Value
+  public static class Store implements ASTNode {
+    List<Variable> variables;
+  }
+
+  public static Store store(List<Variable> variables) {
+    return new Store(variables);
   }
 }

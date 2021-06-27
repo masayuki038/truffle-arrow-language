@@ -16,7 +16,7 @@ import static org.jparsec.pattern.Patterns.isChar;
 public class TruffleArrowParser {
   static String[] operators = {
     "<", ">", "+", "-", "(", ")", ";", "=", ",", "{", "}", "==", ".", "&&", "||", "like"};
-  static String[] keywords = {"echo", "if", "loop", "yield", "return"};
+  static String[] keywords = {"echo", "if", "loop", "arrays", "store", "return"};
 
   static Parser<Void> ignored = Scanners.WHITESPACES.optional();
   static Terminals terms = Terminals.operators(operators).words(Scanners.IDENTIFIER).keywords(keywords).build();
@@ -35,9 +35,13 @@ public class TruffleArrowParser {
         Patterns.string(FieldType.STRING.toString())));
   static Parser<String> fieldDefParser = fieldDefToken.toScanner("fieldDef").source();
 
+  static Pattern decimalToken = Patterns.INTEGER.optional().next(Patterns.FRACTION);
+  static final Parser<String> decimalParser = decimalToken.toScanner("decimal point number").source();
+
   enum Tag {
     VARIABLE,
-    FIELDDEF
+    FIELDDEF,
+    DECIMAL
   }
 
   public static final Parser<Tokens.Fragment> VAR_TOKENIZER =
@@ -45,6 +49,9 @@ public class TruffleArrowParser {
 
   public static final Parser<Tokens.Fragment> FIELDDEF_TOKENIZER =
     fieldDefParser.map(text -> Tokens.fragment(text, Tag.FIELDDEF));
+
+  public static final Parser<Tokens.Fragment> DECIMAL_TOKENIZER =
+    decimalParser.map(text -> Tokens.fragment(text, Tag.DECIMAL));
 
   private static final Parser<String> createParser(Tag tag) {
     return Parsers.token(t -> {
@@ -56,21 +63,26 @@ public class TruffleArrowParser {
       return null;
     });
   }
-
   public static final Parser<String> VAR_PARSER = createParser(Tag.VARIABLE);
   public static final Parser<String> FIELDDEF_PARSER = createParser(Tag.FIELDDEF);
+  public static final Parser<String> DECIMAL_PARSER = createParser(Tag.DECIMAL);
 
   static Parser<?> tokenizer = Parsers.or(
     FIELDDEF_TOKENIZER,
     terms.tokenizer(),
     Terminals.StringLiteral.DOUBLE_QUOTE_TOKENIZER,
-    VAR_TOKENIZER,
+    DECIMAL_TOKENIZER,
     Terminals.IntegerLiteral.TOKENIZER,
+    VAR_TOKENIZER,
     Terminals.Identifier.TOKENIZER
     );
 
   public static Parser<AST.IntValue> integer() {
-    return Terminals.IntegerLiteral.PARSER.map(s -> AST.intValue(Double.parseDouble(s)));
+    return Terminals.IntegerLiteral.PARSER.map(s -> AST.intValue(Integer.parseInt(s)));
+  }
+
+  public static Parser<AST.DoubleValue> double_() {
+    return DECIMAL_PARSER.map(s -> AST.doubleValue(Double.parseDouble(s)));
   }
 
   public static Parser<AST.StringValue> string() {
@@ -84,7 +96,7 @@ public class TruffleArrowParser {
   public static Parser<AST.FieldDef> fieldDef() { return FIELDDEF_PARSER.map(AST::fieldDef); }
 
   public static Parser<AST.Expression> value() {
-    return Parsers.or(loop(), mapMember(), newMap(), variable(), integer(), string(),
+    return Parsers.or(arrays(), mapMember(), newMap(), variable(), integer(), double_(), string(),
       terms.token("(").next(pr -> expression().followedBy(terms.token(")"))));
   }
 
@@ -116,6 +128,18 @@ public class TruffleArrowParser {
              .next(v -> expression().map(exp -> AST.assignment(v, exp)));
   }
 
+  public static Parser<AST.Arrays> arrays() {
+    return terms.token("arrays")
+      .next(a -> fieldDef().sepBy(terms.token(",")).between(terms.token("("), terms.token(")"))
+        .map(fields -> AST.arrays(fields)));
+  }
+
+  public static Parser<AST.Store> store() {
+    return terms.token("store")
+      .next(s -> variable().sepBy(terms.token(",")).between(terms.token("("), terms.token(")"))
+        .map(variables -> AST.store(variables)));
+  }
+
   public static Parser<String> identifier() {
     return Terminals.Identifier.PARSER;
   }
@@ -130,16 +154,14 @@ public class TruffleArrowParser {
   public static Parser<AST.Loop> loop() {
     return terms.token("loop").next(t -> string()
                                            .between(terms.token("("), terms.token(")"))
-                                           .next(path -> statements()
-                                              .next(statements -> terms.token("yield")
-                                                .next(yield -> fieldDef().sepBy(terms.token(",")).between(terms.token("("), terms.token(")"))
-                                                  .map(fields -> AST.loop(path, statements, fields))))));
+                                           .next(s -> statements()
+                                                        .map(statements -> AST.loop(s, statements))));
   }
 
   public static Parser<AST.ASTNode> statement() {
     return
       Parsers.or(
-        Parsers.or(mapMemberAssignment(), assignment(), bicond(), command())
+        Parsers.or(store(), mapMemberAssignment(), assignment(), bicond(), command())
           .followedBy(terms.token(";")),
         ifStatement(), loop());
   }

@@ -9,10 +9,10 @@ import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import org.apache.arrow.vector.VectorSchemaRoot;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+
 
 @ExportLibrary(InteropLibrary.class)
 public class Result implements TruffleObject {

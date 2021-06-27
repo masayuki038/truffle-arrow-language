@@ -9,9 +9,7 @@ import com.oracle.truffle.api.nodes.RootNode;
 import net.wrap_trap.truffle_arrow.language.truffle.node.ExprReadLocal;
 import net.wrap_trap.truffle_arrow.language.truffle.node.ReturnException;
 import net.wrap_trap.truffle_arrow.language.truffle.node.Statements;
-import org.apache.arrow.vector.VectorSchemaRoot;
-
-import java.util.List;
+import net.wrap_trap.truffle_arrow.language.truffle.node.arrays.VectorSchemaRootContainer;
 
 
 public class TruffleArrowRootNode extends RootNode {
@@ -30,8 +28,10 @@ public class TruffleArrowRootNode extends RootNode {
       statements.executeVoid(frame);
     } catch (ReturnException e) {
       Object result = e.getResult();
-      if (result instanceof List) {
-        return new Result((List<VectorSchemaRoot>) result);
+      if (result instanceof VectorSchemaRootContainer) {
+        VectorSchemaRootContainer container = (VectorSchemaRootContainer) result;
+        container.setRowCounts();
+        return new Result(container.getVectorSchemaRoots());
       }
       return e.getResult();
     } catch (UnsupportedSpecializationException e) {

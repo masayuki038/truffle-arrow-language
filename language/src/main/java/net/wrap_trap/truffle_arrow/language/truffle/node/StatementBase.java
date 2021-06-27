@@ -4,7 +4,6 @@ import com.oracle.truffle.api.dsl.TypeSystemReference;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeInfo;
-import com.oracle.truffle.api.nodes.UnexpectedResultException;
 
 /**
  * Base of all statements.
@@ -14,6 +13,4 @@ import com.oracle.truffle.api.nodes.UnexpectedResultException;
 public abstract class StatementBase extends Node {
 
   abstract void executeVoid(VirtualFrame frame);
-
-  //abstract Object execute();
 }

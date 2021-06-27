@@ -1,9 +1,8 @@
 package net.wrap_trap.truffle_arrow.language;
 
-import org.apache.arrow.vector.types.Types;
-
 import java.util.HashMap;
 import java.util.Map;
+
 
 public enum FieldType {
   INT("INT"),

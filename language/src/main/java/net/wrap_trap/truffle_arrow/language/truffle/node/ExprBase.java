@@ -20,6 +20,11 @@ public abstract class ExprBase extends StatementBase {
    */
   abstract Object executeGeneric(VirtualFrame frame);
 
+  @Override
+  void executeVoid(VirtualFrame frame) {
+    executeGeneric(frame);
+  }
+
   boolean executeBoolean(VirtualFrame frame) throws UnexpectedResultException {
     return SqlTypesGen.expectBoolean(executeGeneric(frame));
   }

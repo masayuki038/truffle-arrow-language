@@ -7,7 +7,7 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 public abstract class ExprPlus extends ExprBinary {
 
   @Specialization
-  protected long add(int left, int right) {
+  protected int add(int left, int right) {
     return left + right;
   }
 

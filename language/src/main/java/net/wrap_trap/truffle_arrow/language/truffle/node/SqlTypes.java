@@ -7,6 +7,7 @@ import net.wrap_trap.truffle_arrow.language.truffle.node.type.ArrowTimeSec;
 
 import java.time.LocalDate;
 
+
 @TypeSystem({boolean.class, int.class, long.class, double.class, ArrowTimeSec.class, LocalDate.class, String.class, SqlNull.class})
 public class SqlTypes {
 

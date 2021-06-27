@@ -50,6 +50,8 @@ public class TruffleArrowParserTest {
     assertThat(parser.parse("$hoge"), is(variable("$hoge")));
     assertThat(parser.parse("$F_INT"), is(variable("$F_INT")));
     assertThat(parser.parse("123"), is(intValue(123)));
+    assertThat(parser.parse("0"), is(intValue(0)));
+    assertThat(parser.parse("123.45"), is(doubleValue(123.45)));
   }
 
   @Test
@@ -126,15 +128,14 @@ public class TruffleArrowParserTest {
     String loop = "loop (\"/path/to/dir\") { \n"+
                    "  echo $a;\n" +
                    "  echo \"$a < 3\";\n" +
-                   "} yield (a:INT, b:INT)";
+                   "}";
 
     Parser<Loop> parser = parser(TruffleArrowParser.loop());
     assertThat(
       parser.parse(loop), is(loop(stringValue("/path/to/dir"),
         Arrays.asList(
           command("echo", variable("$a"))
-          , command("echo", stringValue("$a < 3"))),
-        Arrays.asList(fieldDef("a:INT"), fieldDef("b:INT")))));
+          , command("echo", stringValue("$a < 3"))))));
   }
 
   @Test

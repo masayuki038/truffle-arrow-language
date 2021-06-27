@@ -2,6 +2,7 @@ package net.wrap_trap.truffle_arrow.language.truffle;
 
 import net.wrap_trap.truffle_arrow.language.truffle.node.ExprReadLocal;
 
+
 public class LocalVariableNotFoundException extends RuntimeException {
 
   private ExprReadLocal exprReadLocal;

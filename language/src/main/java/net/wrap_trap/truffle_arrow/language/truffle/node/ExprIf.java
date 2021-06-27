@@ -6,6 +6,7 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
+
 @NodeInfo(shortName = "if")
 public final class ExprIf extends ExprBase {
 
@@ -42,10 +43,5 @@ public final class ExprIf extends ExprBase {
     } catch (UnexpectedResultException ex) {
       throw new IllegalStateException(ex);
     }
-  }
-
-  @Override
-  void executeVoid(VirtualFrame frame) {
-    executeGeneric(frame);
   }
 }

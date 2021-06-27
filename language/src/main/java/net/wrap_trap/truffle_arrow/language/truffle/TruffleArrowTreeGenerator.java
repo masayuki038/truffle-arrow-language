@@ -9,6 +9,7 @@ import net.wrap_trap.truffle_arrow.language.truffle.node.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
+
 public class TruffleArrowTreeGenerator {
 
   public Statements visit(FrameDescriptor frame, List<AST.ASTNode> script) {
@@ -27,6 +28,10 @@ public class TruffleArrowTreeGenerator {
       return visit(frame, (AST.If) ast);
     } else if (ast instanceof AST.Assignment) {
       return visit(frame, (AST.Assignment) ast);
+    } else if (ast instanceof AST.Loop) {
+      return visit(frame, (AST.Loop) ast);
+    } else if (ast instanceof AST.Store) {
+      return visit(frame, (AST.Store) ast);
     }
     throw new IllegalStateException("Unknown ASTNode: " + ast);
   }
@@ -50,15 +55,13 @@ public class TruffleArrowTreeGenerator {
     return new ExprIf(cond, new Statements(statements), null);
   }
 
-  ExprLoop visit(FrameDescriptor frame, AST.Loop loopNode) {
-    ExprStringNode pathNode  = visit(frame, loopNode.getPath());
+  StatementLoop visit(FrameDescriptor frame, AST.Loop loopNode) {
+    ExprStringLiteral pathNode  = visit(frame, loopNode.getPath());
     List<StatementBase> list =
       loopNode.getStatements().stream().map(s -> visit(frame, s)).collect(Collectors.toList());
     StatementBase[] array = new StatementBase[list.size()];
     list.toArray(array);
-    List<ExprFieldDef> fields =
-      loopNode.getFields().stream().map(s -> visit(frame, s)).collect(Collectors.toList());
-    return new ExprLoop(pathNode, new Statements(array), fields);
+    return new StatementLoop(pathNode, new Statements(array));
   }
 
    ExprBase visit(FrameDescriptor frame, AST.Expression exp) {
@@ -70,8 +73,10 @@ public class TruffleArrowTreeGenerator {
       return visit(frame, (AST.IntValue) exp);
     } else if (exp instanceof AST.StringValue) {
       return visit(frame, (AST.StringValue) exp);
-    } else if (exp instanceof AST.Loop) {
-      return visit(frame, (AST.Loop) exp);
+    } else if (exp instanceof AST.DoubleValue) {
+      return visit(frame, (AST.DoubleValue) exp);
+    } else if (exp instanceof AST.Arrays) {
+      return visit(frame, (AST.Arrays) exp);
     }
     throw new RuntimeException("Unknown AST.Expression: " + exp);
   }
@@ -101,15 +106,36 @@ public class TruffleArrowTreeGenerator {
     FrameSlot slot = frame.findOrAddFrameSlot(assign.getVariable().getVariableName(), FrameSlotKind.Illegal);
     return StatementWriteLocalNodeGen.create(visit(frame, assign.getExpression()), slot);
   }
+
   ExprBase visit(FrameDescriptor frame, AST.Variable variable) {
     FrameSlot slot = frame.findOrAddFrameSlot(variable.getVariableName(), FrameSlotKind.Illegal);
     return ExprReadLocalNodeGen.create(slot);
   }
 
-  ExprDoubleNode visit(FrameDescriptor frame, AST.IntValue value) {
-    return new ExprDoubleNode(value.getValue());
+  ExprIntegerLiteral visit(FrameDescriptor frame, AST.IntValue value) {
+    return new ExprIntegerLiteral(value.getValue());
   }
-  ExprStringNode visit(FrameDescriptor frame, AST.StringValue value) {
-    return new ExprStringNode(value.getValue());
+
+  ExprStringLiteral visit(FrameDescriptor frame, AST.StringValue value) {
+    return new ExprStringLiteral(value.getValue());
+  }
+
+  ExprDoubleLiteral visit(FrameDescriptor frame, AST.DoubleValue value) {
+    return new ExprDoubleLiteral(value.getValue());
+  }
+
+  ExprArrays visit(FrameDescriptor frame, AST.Arrays arraysNode) {
+    List<ExprFieldDef> fields =
+      arraysNode.getFieldDefs().stream().map(s -> visit(frame, s)).collect(Collectors.toList());
+    return new ExprArrays(fields);
+  }
+
+  StatementStore visit(FrameDescriptor frame, AST.Store storeNode) {
+    if (storeNode.getVariables().size() < 2) {
+      throw new IllegalArgumentException("'store' requires two or more variables");
+    }
+
+    List<ExprBase> variables = storeNode.getVariables().stream().map(v -> visit(frame, v)).collect(Collectors.toList());
+    return new StatementStore(variables);
   }
 }

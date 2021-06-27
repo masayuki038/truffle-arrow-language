@@ -1,18 +1,18 @@
 package net.wrap_trap.truffle_arrow.language.truffle.node;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.UnexpectedResultException;
 
-public class ExprDoubleNode extends ExprBase {
 
-  final double value;
+public class ExprStringLiteral extends ExprBase {
 
-  public ExprDoubleNode(double value) {
+  final String value;
+
+  public ExprStringLiteral(String value) {
     this.value = value;
   }
 
   @Override
-  double executeDouble(VirtualFrame vf) throws UnexpectedResultException {
+  String executeString(VirtualFrame vf) {
     return value;
   }
 
@@ -22,10 +22,9 @@ public class ExprDoubleNode extends ExprBase {
   }
 
   @Override
-  void executeVoid(VirtualFrame frame) { }
-
-  @Override
   public String toString() {
     return "" + value;
   }
+
 }
+
