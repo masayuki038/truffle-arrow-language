@@ -15,7 +15,7 @@ import static org.jparsec.pattern.Patterns.isChar;
 
 public class TruffleArrowParser {
   static String[] operators = {
-    "<", ">", "+", "-", "(", ")", ";", "=", ",", "{", "}", "[", "]", "==", ".", "&&", "||", "like"};
+    "<", ">", "+", "-", "*", "/", "(", ")", ";", "=", ",", "{", "}", "[", "]", "==", ".", "&&", "||", "like"};
   static String[] keywords = {"echo", "if", "loop", "arrays", "store", "get", "return"};
 
   static Parser<Void> ignored = Scanners.WHITESPACES.optional();
@@ -105,6 +105,8 @@ public class TruffleArrowParser {
              .infixl(terms.token(".").retn((l, r) -> AST.binary(l, r, ".")), 10)
              .infixl(terms.token("+").retn((l, r) -> AST.binary(l, r, "+")), 10)
              .infixl(terms.token("-").retn((l, r) -> AST.binary(l, r, "-")), 10)
+             .infixl(terms.token("*").retn((l, r) -> AST.binary(l, r, "*")), 10)
+             .infixl(terms.token("/").retn((l, r) -> AST.binary(l, r, "/")), 10)
              .build(value());
   }
 

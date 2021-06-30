@@ -74,6 +74,8 @@ public class TruffleArrowParserTest {
     assertThat(parser.parse("12+$a"), is(binary(intValue(12), variable("$a"), "+")));
     assertThat(parser.parse("$ab+123"), is(binary(variable("$ab"), intValue(123), "+")));
     assertThat(parser.parse("$a+$b"), is(binary(variable("$a"), variable("$b"), "+")));
+    assertThat(parser.parse("$a * $b"), is(binary(variable("$a"), variable("$b"), "*")));
+    assertThat(parser.parse("$a / $b"), is(binary(variable("$a"), variable("$b"), "/")));
   }
 
   @Test

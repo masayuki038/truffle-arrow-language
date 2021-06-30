@@ -99,6 +99,10 @@ public class TruffleArrowTreeGenerator {
         return ExprPlusNodeGen.create(left, right);
       case "-":
         return ExprMinusNodeGen.create(left, right);
+      case "*":
+        return ExprMultipliedByNodeGen.create(left, right);
+      case "/":
+        return ExprDividedByNodeGen.create(left, right);
       case "<":
         return ExprLessThanNodeGen.create(left, right);
       case ">":

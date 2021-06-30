@@ -34,9 +34,9 @@ public class TruffleArrowLanguageTest {
     String SAMPLE =
       "$a = 1;\n" +
       "$b = 2;\n" +
-      "return $a + $b;";
+      "return $a + $b * 3;";
     Context ctx = Context.create("ta");
-    assertThat(ctx.eval("ta", SAMPLE).asDouble(), is(3d));
+    assertThat(ctx.eval("ta", SAMPLE).asInt(), is(9));
   }
 
   @Test
@@ -117,39 +117,41 @@ public class TruffleArrowLanguageTest {
   public void testMap() {
     String script =
       "$map = {};" +
-        "$out = arrays(key:INT, value:BIGINT);" +
+        "$out = arrays(key:INT, value:INT);" +
         "loop (\"target/all_fields.arrow\") {\n" +
-        "  $map[$F_INT] = $F_BIGINT;\n" +
+        "  $tmp = $F_INT / 2;\n" +
+        "  $map[$tmp] = get($map[$tmp], 0) + 1;\n" +
         "}\n" +
         "store($out, $map);" +
         "return $out;";
     Context ctx = Context.create("ta");
     List<List<Object>> rows = ctx.eval("ta", script).as(List.class);
-    assertThat(rows.size(), is(10));
+    assertThat(rows.size(), is(5));
     assertThat(rows.get(0).get(0), is(0));
-    assertThat(rows.get(0).get(1), is(10L));
-    assertThat(rows.get(9).get(0), is(9));
-    assertThat(rows.get(9).get(1), is(1L));
+    assertThat(rows.get(0).get(1), is(2));
+    assertThat(rows.get(4).get(0), is(4));
+    assertThat(rows.get(4).get(1), is(2));
   }
 
   @Test
-  public void testMap2() {
+  public void testFilterAndMap() {
     String script =
       "$map = {};" +
         "$out = arrays(key:INT, value:INT);" +
         "loop (\"target/all_fields.arrow\") {\n" +
-        "  $tmp = $map[$F_INT];\n" +
-        "  $map[$F_INT] = get($map[$F_INT], 0) + 1;\n" +
+        "  if ($F_INT < 5) {\n" +
+        "    $map[$F_INT] = get($map[$F_INT], 0) + 1;\n" +
+        "  }\n" +
         "}\n" +
         "store($out, $map);" +
         "return $out;";
     Context ctx = Context.create("ta");
     List<List<Object>> rows = ctx.eval("ta", script).as(List.class);
-    assertThat(rows.size(), is(10));
+    assertThat(rows.size(), is(5));
     assertThat(rows.get(0).get(0), is(0));
     assertThat(rows.get(0).get(1), is(1));
-    assertThat(rows.get(9).get(0), is(9));
-    assertThat(rows.get(9).get(1), is(1));
+    assertThat(rows.get(4).get(0), is(4));
+    assertThat(rows.get(4).get(1), is(1));
   }
 
   @Test
