@@ -1,6 +1,5 @@
 package net.wrap_trap.truffle_arrow.language.truffle;
 
-import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.FrameSlotKind;
@@ -107,6 +106,10 @@ public class TruffleArrowTreeGenerator {
         return ExprLessThanNodeGen.create(left, right);
       case ">":
         return ExprGreaterThanNodeGen.create(left, right);
+      case "==":
+        return ExprEqualsNodeGen.create(left, right);
+      case "<>":
+        return ExprNotNodeGen.create(ExprEqualsNodeGen.create(left, right));
     }
     throw new RuntimeException("Unknown binop " + op);
   }

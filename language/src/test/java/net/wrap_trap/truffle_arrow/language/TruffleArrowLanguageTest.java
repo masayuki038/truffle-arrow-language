@@ -40,6 +40,32 @@ public class TruffleArrowLanguageTest {
   }
 
   @Test
+  public void testEqual1() {
+    String SAMPLE =
+      "$a = 1;\n" +
+      "if ($a == 1) {\n" +
+      "  echo \"$a == 1\";\n" +
+      "  return \"foo\";\n" +
+      "}\n" +
+      "return \"bar\";";
+    Context ctx = Context.create("ta");
+    assertThat(ctx.eval("ta", SAMPLE).asString(), is("foo"));
+  }
+
+  @Test
+  public void testEqual2() {
+    String SAMPLE =
+      "$a = 1;\n" +
+      "if ($a == 2) {\n" +
+      "  echo \"$a == 2\";\n" +
+      "  return \"foo\";\n" +
+      "}\n" +
+      "return \"bar\";";
+    Context ctx = Context.create("ta");
+    assertThat(ctx.eval("ta", SAMPLE).asString(), is("bar"));
+  }
+
+  @Test
   public void testPushedVariables() throws IOException {
     String script =
       "$out = arrays(F_INT:INT, F_BIGINT:BIGINT);" +

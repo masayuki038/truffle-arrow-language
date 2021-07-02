@@ -15,7 +15,7 @@ import static org.jparsec.pattern.Patterns.isChar;
 
 public class TruffleArrowParser {
   static String[] operators = {
-    "<", ">", "+", "-", "*", "/", "(", ")", ";", "=", ",", "{", "}", "[", "]", "==", ".", "&&", "||", "like"};
+    "<", ">", "+", "-", "*", "/", "(", ")", ";", "=", ",", "{", "}", "[", "]", "==", "<>", "<=", ">=", ".", "&&", "||", "like"};
   static String[] keywords = {"echo", "if", "loop", "arrays", "store", "get", "return"};
 
   static Parser<Void> ignored = Scanners.WHITESPACES.optional();
@@ -112,7 +112,7 @@ public class TruffleArrowParser {
 
   public static Parser<AST.Expression> bicond() {
     return operator().next(l ->
-                             terms.token("==", "<", ">", "&&", "||", "like").source()
+                             terms.token("==", "<>", "<", ">", "<=", ">=", "&&", "||", "like").source()
                                .next(op -> operator().map(r -> (AST.Expression) AST.binary(l, r, op.trim()))).optional(l));
   }
 
