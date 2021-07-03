@@ -15,6 +15,7 @@ import net.wrap_trap.truffle_arrow.language.ArrowFieldType;
 import net.wrap_trap.truffle_arrow.language.ArrowUtils;
 import org.apache.arrow.vector.*;
 import org.apache.arrow.vector.ipc.ArrowFileReader;
+import org.jparsec.internal.util.Lists;
 
 
 @NodeInfo(shortName = "loop")
@@ -60,16 +61,20 @@ public class StatementLoop extends StatementBase {
   }
 
   protected void loop(VirtualFrame frame, VectorSchemaRoot vectorSchemaRoot) {
-    List<FieldVector> fieldVectors = vectorSchemaRoot.getFieldVectors();
     FrameDescriptor descriptor = frame.getFrameDescriptor();
+
+    List<FieldVector> fieldVectors = Lists.arrayList();
+    for (FieldVector fieldVector: vectorSchemaRoot.getFieldVectors()) {
+      if (descriptor.findFrameSlot(fieldVector.getName()) != null) {
+        fieldVectors.add(fieldVector);
+      }
+    }
+
     int i;
     for (i = 0; i < vectorSchemaRoot.getRowCount(); i++) {
       for (int j = 0; j < fieldVectors.size(); j++) {
         FieldVector fieldVector = fieldVectors.get(j);
         FrameSlot slot = descriptor.findFrameSlot(fieldVector.getName());
-        if (slot == null) {
-          continue;
-        }
         Object value = fieldVector.getObject(i);
         if (value == null) {
           descriptor.setFrameSlotKind(slot, FrameSlotKind.Object);
