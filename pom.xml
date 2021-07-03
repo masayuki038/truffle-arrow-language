@@ -19,5 +19,6 @@
     <modules>
         <module>language</module>
         <module>launcher</module>
+        <module>test-java-code</module>
     </modules>
 </project>
