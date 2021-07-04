@@ -16,7 +16,7 @@ import static org.jparsec.pattern.Patterns.isChar;
 public class TruffleArrowParser {
   static String[] operators = {
     "<", ">", "+", "-", "*", "/", "(", ")", ";", "=", ",", "{", "}", "[", "]", "==", "<>", "<=", ">=", ".", "&&", "||", "like"};
-  static String[] keywords = {"echo", "if", "loop", "arrays", "store", "get", "return"};
+  static String[] keywords = {"echo", "if", "load", "arrays", "store", "get", "return"};
 
   static Parser<Void> ignored = Scanners.WHITESPACES.optional();
   static Terminals terms = Terminals.operators(operators).words(Scanners.IDENTIFIER).keywords(keywords).build();
@@ -163,11 +163,11 @@ public class TruffleArrowParser {
                                                         .map(statements -> AST.ifs(exp, statements))));
   }
 
-  public static Parser<AST.Loop> loop() {
-    return terms.token("loop").next(t -> string()
+  public static Parser<AST.Load> load() {
+    return terms.token("load").next(t -> string()
                                            .between(terms.token("("), terms.token(")"))
                                            .next(s -> statements()
-                                                        .map(statements -> AST.loop(s, statements))));
+                                                        .map(statements -> AST.load(s, statements))));
   }
 
   public static Parser<AST.ASTNode> statement() {
@@ -175,7 +175,7 @@ public class TruffleArrowParser {
       Parsers.or(
         Parsers.or(store(), mapMemberAssignment(), assignment(), bicond(), command())
           .followedBy(terms.token(";")),
-        ifStatement(), loop());
+        ifStatement(), load());
   }
 
   public static Parser<List<AST.ASTNode>> statements() {

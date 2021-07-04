@@ -28,8 +28,8 @@ public class TruffleArrowTreeGenerator {
       return visit(frame, (AST.If) ast);
     } else if (ast instanceof AST.Assignment) {
       return visit(frame, (AST.Assignment) ast);
-    } else if (ast instanceof AST.Loop) {
-      return visit(frame, (AST.Loop) ast);
+    } else if (ast instanceof AST.Load) {
+      return visit(frame, (AST.Load) ast);
     } else if (ast instanceof AST.Store) {
       return visit(frame, (AST.Store) ast);
     } else if (ast instanceof AST.MapMemberAssignment) {
@@ -57,13 +57,13 @@ public class TruffleArrowTreeGenerator {
     return new ExprIf(cond, new Statements(statements), null);
   }
 
-  StatementLoop visit(FrameDescriptor frame, AST.Loop loopNode) {
-    ExprStringLiteral pathNode  = visit(frame, loopNode.getPath());
+  StatementLoad visit(FrameDescriptor frame, AST.Load loadNode) {
+    ExprStringLiteral pathNode  = visit(frame, loadNode.getPath());
     List<StatementBase> list =
-      loopNode.getStatements().stream().map(s -> visit(frame, s)).collect(Collectors.toList());
+      loadNode.getStatements().stream().map(s -> visit(frame, s)).collect(Collectors.toList());
     StatementBase[] array = new StatementBase[list.size()];
     list.toArray(array);
-    return new StatementLoop(pathNode, new Statements(array));
+    return new StatementLoad(pathNode, new Statements(array));
   }
 
    ExprBase visit(FrameDescriptor frame, AST.Expression exp) {

@@ -134,13 +134,13 @@ public class AST {
   }
 
   @Value
-  public static class Loop implements ASTNode {
+  public static class Load implements ASTNode {
     StringValue path;
     List<ASTNode> statements;
   }
 
-  public static Loop loop(StringValue path, List<ASTNode> statements) {
-    return new Loop(path, statements);
+  public static Load load(StringValue path, List<ASTNode> statements) {
+    return new Load(path, statements);
   }
 
   @Value

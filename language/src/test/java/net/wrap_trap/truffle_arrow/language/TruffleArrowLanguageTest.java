@@ -69,7 +69,7 @@ public class TruffleArrowLanguageTest {
   public void testPushedVariables() throws IOException {
     String script =
       "$out = arrays(F_INT:INT, F_BIGINT:BIGINT);" +
-      "loop (\"target/all_fields.arrow\") {\n" +
+      "load (\"target/all_fields.arrow\") {\n" +
       "  echo $F_INT;\n" +
       "  echo $F_BIGINT;\n" +
       "  $F_BIGINT;\n" +
@@ -91,7 +91,7 @@ public class TruffleArrowLanguageTest {
   public void testAddNewVariableToOutputs() {
     String script =
       "$out = arrays(F_BIGINT:BIGINT, a:STRING);" +
-      "loop (\"target/all_fields.arrow\") {\n" +
+      "load (\"target/all_fields.arrow\") {\n" +
         "  echo $F_BIGINT;\n" +
         "  $a = \"hoge\";\n" +
         "  $b = 1;\n" +
@@ -111,7 +111,7 @@ public class TruffleArrowLanguageTest {
   public void testSum() {
     String script =
       "$sum = 0;" +
-        "loop (\"target/all_fields.arrow\") {\n" +
+        "load (\"target/all_fields.arrow\") {\n" +
         "  echo $F_INT;\n" +
         "  $sum = $sum + $F_INT;\n" +
         "}\n" +
@@ -127,7 +127,7 @@ public class TruffleArrowLanguageTest {
     String script =
       "$cnt = 0;" +
         "$out = arrays(cnt:INT);" +
-        "loop (\"target/all_fields.arrow\") {\n" +
+        "load (\"target/all_fields.arrow\") {\n" +
         "  echo $F_INT;\n" +
         "  $cnt = $cnt + 1;\n" +
         "}\n" +
@@ -144,7 +144,7 @@ public class TruffleArrowLanguageTest {
     String script =
       "$map = {};" +
         "$out = arrays(key:INT, value:INT);" +
-        "loop (\"target/all_fields.arrow\") {\n" +
+        "load (\"target/all_fields.arrow\") {\n" +
         "  $tmp = $F_INT / 2;\n" +
         "  $map[$tmp] = get($map[$tmp], 0) + 1;\n" +
         "}\n" +
@@ -164,7 +164,7 @@ public class TruffleArrowLanguageTest {
     String script =
       "$map = {};" +
         "$out = arrays(key:INT, value:INT);" +
-        "loop (\"target/all_fields.arrow\") {\n" +
+        "load (\"target/all_fields.arrow\") {\n" +
         "  if ($F_INT < 5) {\n" +
         "    $map[$F_INT] = get($map[$F_INT], 0) + 1;\n" +
         "  }\n" +
@@ -183,7 +183,7 @@ public class TruffleArrowLanguageTest {
   @Test
   public void testRefIllegalVariableName() {
     String script =
-      "loop (\"target/all_fields.arrow\") {\n" +
+      "load (\"target/all_fields.arrow\") {\n" +
         "  echo $F_BIGIN;\n" +
         "}\n";
     try {
@@ -199,7 +199,7 @@ public class TruffleArrowLanguageTest {
   public void testRefIllegalVariableType() {
     String script =
       "$out = arrays(F_BIGINT:BIGIN);\n" +
-      "loop (\"target/all_fields.arrow\") {\n" +
+      "load (\"target/all_fields.arrow\") {\n" +
         "  echo $F_BIGINT;\n" +
         "}\n";
     try {

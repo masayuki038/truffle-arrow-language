@@ -19,7 +19,7 @@ import org.jparsec.internal.util.Lists;
 
 
 @NodeInfo(shortName = "loop")
-public class StatementLoop extends StatementBase {
+public class StatementLoad extends StatementBase {
 
   @Child
   private ExprStringLiteral dirPath;
@@ -27,7 +27,7 @@ public class StatementLoop extends StatementBase {
   @Child
   private Statements statements;
 
-  public StatementLoop(ExprStringLiteral dirPath, Statements statements) {
+  public StatementLoad(ExprStringLiteral dirPath, Statements statements) {
     this.dirPath = dirPath;
     this.statements = statements;
   }
