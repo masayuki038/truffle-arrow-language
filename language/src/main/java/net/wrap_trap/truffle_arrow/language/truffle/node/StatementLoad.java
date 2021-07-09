@@ -81,9 +81,11 @@ public class StatementLoad extends StatementBase {
     FrameDescriptor descriptor = frame.getFrameDescriptor();
 
     List<FieldVector> fieldVectors = Lists.arrayList();
+    List<ArrowFieldType> fieldTypes = Lists.arrayList();
     for (FieldVector fieldVector: vectorSchemaRoot.getFieldVectors()) {
       if (descriptor.findFrameSlot(fieldVector.getName()) != null) {
         fieldVectors.add(fieldVector);
+        fieldTypes.add(ArrowFieldType.of(fieldVector.getField().getFieldType().getType()));
       }
     }
 
@@ -98,7 +100,7 @@ public class StatementLoad extends StatementBase {
           frame.setObject(slot, SqlNull.INSTANCE);
         } else {
           // TODO handle DATE / TIME / TIMESTAMP
-          ArrowFieldType type = ArrowFieldType.of(fieldVector.getField().getFieldType().getType());
+          ArrowFieldType type = fieldTypes.get(j);
           switch (type) {
             case INT:
               descriptor.setFrameSlotKind(slot, FrameSlotKind.Int);
