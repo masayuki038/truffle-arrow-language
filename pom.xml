@@ -9,6 +9,10 @@
     <version>0.2.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
+    <name>truffle-arrow-language</name>
+    <url>https://github.com/masayuki038/truffle-arrow-language</url>
+    <description>truffle-arrow-language is a language processing for Apache Arrow(https://arrow.apache.org) and built using Truffle for GraalVM.</description>
+
     <licenses>
         <license>
             <name>Apache License, Version 2.0</name>
@@ -21,8 +25,6 @@
         <connection>scm:git:git@github.com:masayuki038/truffle-arrow-language.git</connection>
         <developerConnection>scm:git:git@github.com:masayuki038/truffle-arrow-language.git</developerConnection>
     </scm>
-    <url>https://github.com/masayuki038/truffle-arrow-language</url>
-    <description>truffle-arrow-language is a language processing for Apache Arrow(https://arrow.apache.org) and built using Truffle for GraalVM.</description>
 
     <developers>
         <developer>
