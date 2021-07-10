@@ -77,5 +77,10 @@
             <artifactId>graal-sdk</artifactId>
             <version>${graal.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.graalvm.sdk</groupId>
+            <artifactId>launcher-common</artifactId>
+            <version>${graal.version}</version>
+        </dependency>
     </dependencies>
 </project>
