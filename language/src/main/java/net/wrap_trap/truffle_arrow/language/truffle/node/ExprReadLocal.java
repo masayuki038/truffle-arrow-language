@@ -24,6 +24,8 @@ import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.FrameSlotKind;
 import com.oracle.truffle.api.frame.FrameUtil;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.instrumentation.StandardTags;
+import com.oracle.truffle.api.instrumentation.Tag;
 
 /**
  * Read a local variable.
@@ -92,5 +94,10 @@ public abstract class ExprReadLocal extends ExprBase {
 
   protected boolean isObject(VirtualFrame frame) {
     return getSlot().getKind() == FrameSlotKind.Object;
+  }
+
+  @Override
+  public boolean hasTag(Class<? extends Tag> tag) {
+    return tag == StandardTags.ReadVariableTag.class || super.hasTag(tag);
   }
 }

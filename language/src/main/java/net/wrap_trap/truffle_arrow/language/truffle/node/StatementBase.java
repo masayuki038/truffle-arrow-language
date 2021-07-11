@@ -19,15 +19,44 @@ package net.wrap_trap.truffle_arrow.language.truffle.node;
 
 import com.oracle.truffle.api.dsl.TypeSystemReference;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.instrumentation.*;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeInfo;
+
 
 /**
  * Base of all statements.
  */
 @TypeSystemReference(SqlTypes.class)
+@GenerateWrapper
 @NodeInfo(description = "The abstract base node for all statements")
-public abstract class StatementBase extends Node {
+public abstract class StatementBase extends Node implements InstrumentableNode {
+
+  private boolean hasRootTag;
 
   abstract void executeVoid(VirtualFrame frame);
+
+  @Override
+  public boolean isInstrumentable() {
+    return true;
+  }
+
+  @Override
+  public WrapperNode createWrapper(ProbeNode probe) {
+    return new StatementBaseWrapper(this, probe);
+  }
+
+  @Override
+  public boolean hasTag(Class<? extends Tag> tag) {
+    if (tag == StandardTags.StatementTag.class) {
+      return true;
+    } else if (tag == StandardTags.RootTag.class || tag == StandardTags.RootBodyTag.class) {
+      return hasRootTag;
+    }
+    return false;
+  }
+
+  public final void addRootTag() {
+    this.hasRootTag = true;
+  }
 }

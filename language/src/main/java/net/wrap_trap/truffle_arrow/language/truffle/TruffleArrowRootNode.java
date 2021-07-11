@@ -23,6 +23,7 @@ import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
+import com.oracle.truffle.api.source.SourceSection;
 import net.wrap_trap.truffle_arrow.language.truffle.node.ExprReadLocal;
 import net.wrap_trap.truffle_arrow.language.truffle.node.ReturnException;
 import net.wrap_trap.truffle_arrow.language.truffle.node.Statements;
@@ -34,9 +35,17 @@ public class TruffleArrowRootNode extends RootNode {
   @Child
   private Statements statements;
 
-  public TruffleArrowRootNode(TruffleLanguage<?> language, FrameDescriptor frameDescriptor, Statements statements) {
+  private final SourceSection sourceSection;
+
+  public TruffleArrowRootNode(TruffleLanguage<?> language, FrameDescriptor frameDescriptor, SourceSection sourceSection, Statements statements) {
     super(language, frameDescriptor);
     this.statements = statements;
+    this.sourceSection = sourceSection;
+  }
+
+  @Override
+  protected boolean isInstrumentable() {
+    return true;
   }
 
   @Override
@@ -59,5 +68,10 @@ public class TruffleArrowRootNode extends RootNode {
       throw e;
     }
     return true;
+  }
+
+  @Override
+  public SourceSection getSourceSection() {
+    return sourceSection;
   }
 }

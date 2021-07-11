@@ -19,6 +19,8 @@ package net.wrap_trap.truffle_arrow.language.truffle.node;
 
 import com.oracle.truffle.api.dsl.TypeSystemReference;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.instrumentation.StandardTags;
+import com.oracle.truffle.api.instrumentation.Tag;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
 import net.wrap_trap.truffle_arrow.language.truffle.node.type.ArrowTimeSec;
@@ -64,5 +66,10 @@ public abstract class ExprBase extends StatementBase {
 
   ArrowTimeSec executeArrowTimeSec(VirtualFrame frame) throws UnexpectedResultException {
     return SqlTypesGen.expectArrowTimeSec(executeGeneric(frame));
+  }
+
+  @Override
+  public boolean hasTag(Class<? extends Tag> tag) {
+    return tag == StandardTags.ExpressionTag.class || super.hasTag(tag);
   }
 }

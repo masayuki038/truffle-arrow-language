@@ -18,6 +18,8 @@
 package net.wrap_trap.truffle_arrow.language.truffle.node;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.instrumentation.StandardTags;
+import com.oracle.truffle.api.instrumentation.Tag;
 
 import java.util.Map;
 
@@ -40,5 +42,10 @@ public class ExprMapMember extends ExprBase {
     }
     Map<Object, Object> map = (Map<Object, Object>) o;
     return map.get(this.member.executeGeneric(frame));
+  }
+
+  @Override
+  public boolean hasTag(Class<? extends Tag> tag) {
+    return tag == StandardTags.ReadVariableTag.class || super.hasTag(tag);
   }
 }

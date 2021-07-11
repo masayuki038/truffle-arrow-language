@@ -18,6 +18,8 @@
 package net.wrap_trap.truffle_arrow.language.truffle.node;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.instrumentation.StandardTags;
+import com.oracle.truffle.api.instrumentation.Tag;
 
 import java.util.Map;
 
@@ -41,5 +43,10 @@ public class StatementMapMemberWrite extends StatementBase {
     }
     Map<Object, Object> map = (Map<Object, Object>) o;
     map.put(this.member.executeGeneric(frame), this.value.executeGeneric(frame));
+  }
+
+  @Override
+  public boolean hasTag(Class<? extends Tag> tag) {
+    return tag == StandardTags.WriteVariableTag.class || super.hasTag(tag);
   }
 }

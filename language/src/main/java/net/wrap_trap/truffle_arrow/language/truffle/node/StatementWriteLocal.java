@@ -23,6 +23,8 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.FrameSlotKind;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.instrumentation.StandardTags;
+import com.oracle.truffle.api.instrumentation.Tag;
 
 /**
  * Writes a local variable.
@@ -112,5 +114,10 @@ public abstract class StatementWriteLocal extends StatementBase {
     getSlot().setKind(FrameSlotKind.Object);
 
     frame.setObject(getSlot(), value);
+  }
+
+  @Override
+  public boolean hasTag(Class<? extends Tag> tag) {
+    return tag == StandardTags.WriteVariableTag.class || super.hasTag(tag);
   }
 }
