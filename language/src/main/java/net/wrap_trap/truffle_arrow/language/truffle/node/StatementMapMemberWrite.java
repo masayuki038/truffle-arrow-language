@@ -36,7 +36,7 @@ public class StatementMapMemberWrite extends StatementBase {
   }
 
   @Override
-  void executeVoid(VirtualFrame frame) {
+  public void executeVoid(VirtualFrame frame) {
     Object o = this.mapVariable.readObject(frame);
     if (!(o instanceof Map)) {
       throw new IllegalArgumentException("Map expected, but: " + o);

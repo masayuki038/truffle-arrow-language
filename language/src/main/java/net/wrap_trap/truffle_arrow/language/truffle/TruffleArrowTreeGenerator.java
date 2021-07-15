@@ -59,9 +59,13 @@ public class TruffleArrowTreeGenerator {
     ExprBase param = visit(frame, command.getParam());
     if ("echo".equals(command.getCommand())) {
       ExprBase expr = visit(frame, command.getParam());
-      return new StatementEcho(expr);
+      StatementEcho echo = new StatementEcho(expr);
+      echo.setSourceSection(command.getSourceIndex(), command.getSourceLength());
+      return echo;
     } else if ("return".equals(command.getCommand())) {
-      return new ReturnNode(param);
+      ReturnNode returns = new ReturnNode(param);
+      returns.setSourceSection(command.getSourceIndex(), command.getSourceLength());
+      return returns;
     }
     throw new RuntimeException("Unknown AST.Command: " + command);
   }
@@ -71,7 +75,9 @@ public class TruffleArrowTreeGenerator {
     StatementBase[] statements = ifNode.getStatements().stream()
                                   .map(ast -> visit(frame, ast))
                                   .toArray(StatementBase[]::new);
-    return new ExprIf(cond, new Statements(statements), null);
+    ExprIf ifs =  new ExprIf(cond, new Statements(statements), null);
+    ifs.setSourceSection(ifNode.getSourceIndex(), ifNode.getSourceLength());
+    return ifs;
   }
 
   StatementLoad visit(FrameDescriptor frame, AST.Load loadNode) {
@@ -80,7 +86,9 @@ public class TruffleArrowTreeGenerator {
       loadNode.getStatements().stream().map(s -> visit(frame, s)).collect(Collectors.toList());
     StatementBase[] array = new StatementBase[list.size()];
     list.toArray(array);
-    return new StatementLoad(pathNode, new Statements(array));
+    StatementLoad load = new StatementLoad(pathNode, new Statements(array));
+    load.setSourceSection(loadNode.getSourceIndex(), loadNode.getSourceLength());
+    return load;
   }
 
    ExprBase visit(FrameDescriptor frame, AST.Expression exp) {
@@ -160,13 +168,17 @@ public class TruffleArrowTreeGenerator {
   ExprArrays visit(FrameDescriptor frame, AST.Arrays arraysNode) {
     List<ExprFieldDef> fields =
       arraysNode.getFieldDefs().stream().map(s -> visit(frame, s)).collect(Collectors.toList());
-    return new ExprArrays(fields);
+    ExprArrays arrays =  new ExprArrays(fields);
+    arrays.setSourceSection(arraysNode.getSourceIndex(), arraysNode.getSourceLength());
+    return arrays;
   }
 
   ExprGet visit(FrameDescriptor frame, AST.Get getNode) {
     ExprBase expr = visit(frame, getNode.getExpr());
     ExprBase orElse = visit(frame, getNode.getOrElse());
-    return new ExprGet(expr, orElse);
+    ExprGet get = new ExprGet(expr, orElse);
+    get.setSourceSection(getNode.getSourceIndex(), getNode.getSourceLength());
+    return get;
   }
 
   ExprNewMapLiteral visit(FrameDescriptor frame, AST.MapValue mapValueNode) {
@@ -192,6 +204,8 @@ public class TruffleArrowTreeGenerator {
     }
 
     List<ExprBase> variables = storeNode.getVariables().stream().map(v -> visit(frame, v)).collect(Collectors.toList());
-    return new StatementStore(variables);
+    StatementStore store = new StatementStore(variables);
+    store.setSourceSection(storeNode.getSourceIndex(), storeNode.getSourceLength());
+    return store;
   }
 }

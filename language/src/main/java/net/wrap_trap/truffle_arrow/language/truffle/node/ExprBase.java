@@ -40,7 +40,7 @@ public abstract class ExprBase extends StatementBase {
   abstract Object executeGeneric(VirtualFrame frame);
 
   @Override
-  void executeVoid(VirtualFrame frame) {
+  public void executeVoid(VirtualFrame frame) {
     executeGeneric(frame);
   }
 

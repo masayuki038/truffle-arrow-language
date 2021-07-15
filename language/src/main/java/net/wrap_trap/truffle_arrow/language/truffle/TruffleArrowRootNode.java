@@ -26,20 +26,21 @@ import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.SourceSection;
 import net.wrap_trap.truffle_arrow.language.truffle.node.ExprReadLocal;
 import net.wrap_trap.truffle_arrow.language.truffle.node.ReturnException;
+import net.wrap_trap.truffle_arrow.language.truffle.node.StatementBase;
 import net.wrap_trap.truffle_arrow.language.truffle.node.Statements;
 import net.wrap_trap.truffle_arrow.language.truffle.node.arrays.VectorSchemaRootContainer;
 
 
 public class TruffleArrowRootNode extends RootNode {
 
-  @Child
-  private Statements statements;
+  @Children
+  private StatementBase[] statements;
 
   private final SourceSection sourceSection;
 
   public TruffleArrowRootNode(TruffleLanguage<?> language, FrameDescriptor frameDescriptor, SourceSection sourceSection, Statements statements) {
     super(language, frameDescriptor);
-    this.statements = statements;
+    this.statements = statements.getStatements();
     this.sourceSection = sourceSection;
   }
 
@@ -51,7 +52,9 @@ public class TruffleArrowRootNode extends RootNode {
   @Override
   public Object execute(VirtualFrame frame) {
     try {
-      statements.executeVoid(frame);
+      for (StatementBase statement: this.statements) {
+        statement.executeVoid(frame);
+      }
     } catch (ReturnException e) {
       Object result = e.getResult();
       if (result instanceof VectorSchemaRootContainer) {

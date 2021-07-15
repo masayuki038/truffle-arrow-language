@@ -36,4 +36,15 @@ public final class Statements extends StatementBase {
       statement.executeVoid(frame);
     }
   }
+
+  public StatementBase[] getStatements() {
+    return this.statements;
+  }
+
+  public void addRootTagsToStatements() {
+    this.addRootTag();
+    for (StatementBase statement: this.statements) {
+      statement.addRootTag();
+    }
+  }
 }

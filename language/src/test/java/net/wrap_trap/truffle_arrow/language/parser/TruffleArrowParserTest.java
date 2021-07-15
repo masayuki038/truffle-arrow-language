@@ -101,11 +101,11 @@ public class TruffleArrowParserTest {
   @Test
   public void testCommand() {
     Parser<Command> parser = parser(TruffleArrowParser.command());
-    assertThat(parser.parse("echo 123"), is(command("echo", intValue(123))));
-    assertThat(parser.parse("echo 123<3"), is(command("echo", binary(intValue(123), intValue(3), "<"))));
-    assertThat(parser.parse("echo 23+3"), is(command("echo", binary(intValue(23), intValue(3), "+"))));
-    assertThat(parser.parse("echo $a"), is(command("echo", variable("$a"))));
-    assertThat(parser.parse("echo \"a\""), is(command("echo", stringValue("a"))));
+    assertThat(parser.parse("echo 123"), is(command("echo", intValue(123), 1, 1)));
+    assertThat(parser.parse("echo 123<3"), is(command("echo", binary(intValue(123), intValue(3), "<"), 1, 1)));
+    assertThat(parser.parse("echo 23+3"), is(command("echo", binary(intValue(23), intValue(3), "+"), 1, 1)));
+    assertThat(parser.parse("echo $a"), is(command("echo", variable("$a"), 1, 1)));
+    assertThat(parser.parse("echo \"a\""), is(command("echo", stringValue("a"), 1, 1)));
   }
 
   @Test
@@ -119,7 +119,7 @@ public class TruffleArrowParserTest {
     Parser<ASTNode> parser = parser(TruffleArrowParser.statement());
     assertThat(parser.parse("$a;"), is(variable("$a")));
     assertThat(parser.parse("$a=$a+1;"), is(assignment(variable("$a"), binary(variable("$a"), intValue(1), "+"))));
-    assertThat(parser.parse("echo \"aaa\";"), is(command("echo", stringValue("aaa"))));
+    assertThat(parser.parse("echo \"aaa\";"), is(command("echo", stringValue("aaa"), 1, 1)));
     assertThat(parser.parse("$a[\"a1\"]=\"hoge\";"), is(mapMemberAssignment(variable("$a"), stringValue("a1"), stringValue("hoge"))));
   }
 
@@ -128,7 +128,7 @@ public class TruffleArrowParserTest {
     Parser<If> parser = parser(TruffleArrowParser.ifStatement());
     assertThat(
       parser.parse("if ($a < 3) echo $a;"), is(ifs(binary(variable("$a"), intValue(3), "<")
-        , Arrays.asList(command("echo", variable("$a"))))));
+        , Arrays.asList(command("echo", variable("$a"), 1, 1)), 1, 1)));
   }
 
   @Test
@@ -141,8 +141,8 @@ public class TruffleArrowParserTest {
     Parser<If> parser = parser(TruffleArrowParser.ifStatement());
     assertThat(
       parser.parse(ifs), is(ifs(binary(variable("$a"), intValue(3), "<")
-        , Arrays.asList(command("echo", variable("$a"))
-          , command("echo", stringValue("$a < 3"))))));
+        , Arrays.asList(command("echo", variable("$a"), 1, 1)
+          , command("echo", stringValue("$a < 3"), 1, 1)), 1, 1)));
   }
 
   @Test
@@ -156,16 +156,16 @@ public class TruffleArrowParserTest {
     assertThat(
       parser.parse(loop), is(load(stringValue("/path/to/dir"),
         Arrays.asList(
-          command("echo", variable("$a"))
-          , command("echo", stringValue("$a < 3"))))));
+          command("echo", variable("$a"), 1, 1)
+          , command("echo", stringValue("$a < 3"), 1, 1)), 1, 1)));
   }
 
   @Test
   public void testGet() {
     Parser<Get> parser = parser(new TruffleArrowParser().get());
-    assertThat(parser.parse("get(1, 0)"), is(get(intValue(1), intValue(0))));
-    assertThat(parser.parse("get($map[$foo], 0)"), is(get(mapMember(variable("$map"), variable("$foo")), intValue(0))));
-    assertThat(parser.parse("get($map[\"foo\"], 1)"), is(get(mapMember(variable("$map"), stringValue("foo")), intValue(1))));
+    assertThat(parser.parse("get(1, 0)"), is(get(intValue(1), intValue(0), 1, 1)));
+    assertThat(parser.parse("get($map[$foo], 0)"), is(get(mapMember(variable("$map"), variable("$foo")), intValue(0), 1, 1)));
+    assertThat(parser.parse("get($map[\"foo\"], 1)"), is(get(mapMember(variable("$map"), stringValue("foo")), intValue(1), 1, 1)));
   }
 
   @Test

@@ -33,7 +33,7 @@ public class StatementEcho extends StatementBase {
   }
 
   @Override
-  void executeVoid(VirtualFrame frame) {
+  public void executeVoid(VirtualFrame frame) {
     System.out.println(this.expr.executeGeneric(frame));
   }
 }

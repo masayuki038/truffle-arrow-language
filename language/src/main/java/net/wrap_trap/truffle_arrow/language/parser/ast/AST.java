@@ -17,6 +17,8 @@
 
 package net.wrap_trap.truffle_arrow.language.parser.ast;
 
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.Value;
 import net.wrap_trap.truffle_arrow.language.FieldType;
 
@@ -26,6 +28,25 @@ public class AST {
 
   public interface ASTNode {}
   public interface Expression extends ASTNode {}
+
+  public static abstract class SourceIndexable {
+
+    private int sourceIndex;
+    private int sourceLength;
+
+    public SourceIndexable(int sourceIndex, int sourceLength) {
+      this.sourceIndex = sourceIndex;
+      this.sourceLength = sourceLength;
+    }
+
+    public int getSourceIndex() {
+      return sourceIndex;
+    }
+
+    public int getSourceLength() {
+      return sourceLength;
+    }
+  }
 
   @Value
   public static class IntValue implements Expression {
@@ -92,14 +113,29 @@ public class AST {
     return new Variable(name);
   }
 
-  @Value
-  public static class Command implements ASTNode {
-    String command;
-    Expression param;
+  @EqualsAndHashCode
+  @ToString
+  public static class Command extends SourceIndexable implements ASTNode {
+    private String command;
+    private Expression param;
+
+    public Command(String command, Expression param, int sourceIndex, int sourceLength) {
+      super(sourceIndex, sourceLength);
+      this.command = command;
+      this.param = param;
+    }
+
+    public String getCommand() {
+      return command;
+    }
+
+    public Expression getParam() {
+      return param;
+    }
   }
 
-  public static Command command(String command, Expression param) {
-    return new Command(command, param);
+  public static Command command(String command, Expression param, int sourceIndex, int sourceLength) {
+    return new Command(command, param, sourceIndex, sourceLength);
   }
 
   @Value
@@ -140,51 +176,116 @@ public class AST {
     return new MapMemberAssignment(map, member, value);
   }
 
-  @Value
-  public static class If implements ASTNode {
-    Expression expression;
-    List<ASTNode> statements;
+  @EqualsAndHashCode
+  @ToString
+  public static class If extends SourceIndexable implements ASTNode {
+    private Expression expression;
+    private List<ASTNode> statements;
+
+    public If(Expression expression, List<ASTNode> statements, int sourceIndex, int sourceLength) {
+      super(sourceIndex, sourceLength);
+      this.expression = expression;
+      this.statements = statements;
+    }
+
+    public Expression getExpression() {
+      return expression;
+    }
+
+    public List<ASTNode> getStatements() {
+      return statements;
+    }
   }
 
-  public static If ifs(Expression expression, List<ASTNode> statements) {
-    return new If(expression, statements);
+  public static If ifs(Expression expression, List<ASTNode> statements, int sourceIndex, int sourceLength) {
+    return new If(expression, statements, sourceIndex, sourceLength);
   }
 
-  @Value
-  public static class Load implements ASTNode {
-    StringValue path;
-    List<ASTNode> statements;
+  @EqualsAndHashCode
+  @ToString
+  public static class Load extends SourceIndexable implements ASTNode {
+    private StringValue path;
+    private List<ASTNode> statements;
+
+    public Load(StringValue path, List<ASTNode> statements, int sourceIndex, int sourceLength) {
+      super(sourceIndex, sourceLength);
+      this.path = path;
+      this.statements = statements;
+    }
+
+    public StringValue getPath() {
+      return path;
+    }
+
+    public List<ASTNode> getStatements() {
+      return statements;
+    }
   }
 
-  public static Load load(StringValue path, List<ASTNode> statements) {
-    return new Load(path, statements);
+  public static Load load(StringValue path, List<ASTNode> statements, int sourceIndex, int sourceLength) {
+    return new Load(path, statements, sourceIndex, sourceLength);
   }
 
-  @Value
-  public static class Arrays implements Expression {
-    List<FieldDef> fieldDefs;
+  @EqualsAndHashCode
+  @ToString
+  public static class Arrays extends SourceIndexable implements Expression {
+    private List<FieldDef> fieldDefs;
+
+    public Arrays(List<FieldDef> fieldDefs, int sourceIndex, int sourceLength) {
+      super(sourceIndex, sourceLength);
+      this.fieldDefs = fieldDefs;
+    }
+
+    public List<FieldDef> getFieldDefs() {
+      return fieldDefs;
+    }
   }
 
-  public static Arrays arrays(List<FieldDef> fieldDefs) {
-    return new Arrays(fieldDefs);
+  public static Arrays arrays(List<FieldDef> fieldDefs, int sourceIndex, int sourceLength) {
+    return new Arrays(fieldDefs, sourceIndex, sourceLength);
   }
 
-  @Value
-  public static class Get implements Expression {
-    Expression expr;
-    Expression orElse;
+  @EqualsAndHashCode
+  @ToString
+  public static class Get extends SourceIndexable implements Expression {
+    private Expression expr;
+    private Expression orElse;
+
+    public Get(Expression expr, Expression orElse, int sourceIndex, int sourceLength) {
+      super(sourceIndex, sourceLength);
+      this.expr = expr;
+      this.orElse = orElse;
+    }
+
+    public Expression getExpr() {
+      return expr;
+    }
+
+    public Expression getOrElse() {
+      return orElse;
+    }
   }
 
-  public static Get get(Expression expr, Expression orElse) {
-    return new Get(expr, orElse);
+  public static Get get(Expression expr, Expression orElse, int sourceIndex, int sourceLength) {
+    return new Get(expr, orElse, sourceIndex, sourceLength);
   }
 
-  @Value
-  public static class Store implements ASTNode {
-    List<Variable> variables;
+  @EqualsAndHashCode
+  @ToString
+  public static class Store extends SourceIndexable implements ASTNode {
+    private List<Variable> variables;
+
+    public Store(List<Variable> variables, int sourceIndex, int sourceLength) {
+      super(sourceIndex, sourceLength);
+      this.variables = variables;
+    }
+
+    public List<Variable> getVariables() {
+      return variables;
+    }
   }
 
-  public static Store store(List<Variable> variables) {
-    return new Store(variables);
+  public static Store store(List<Variable> variables, int sourceIndex, int sourceLength) {
+    return new Store(variables, sourceIndex, sourceLength);
   }
 }

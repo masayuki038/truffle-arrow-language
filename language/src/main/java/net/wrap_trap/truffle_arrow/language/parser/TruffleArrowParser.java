@@ -139,7 +139,7 @@ public class TruffleArrowParser {
 
   public static Parser<AST.Command> command() {
     return terms.token("echo").or(terms.token("return"))
-             .next(t -> expression().map(exp -> AST.command(t.toString(), exp)));
+             .next(t -> expression().map(exp -> AST.command(t.toString(), exp, t.index(), t.length())));
   }
 
   public static Parser<AST.Assignment> assignment() {
@@ -150,7 +150,7 @@ public class TruffleArrowParser {
   public static Parser<AST.Arrays> arrays() {
     return terms.token("arrays")
       .next(a -> fieldDef().sepBy(terms.token(",")).between(terms.token("("), terms.token(")"))
-        .map(fields -> AST.arrays(fields)));
+        .map(fields -> AST.arrays(fields, a.index(), a.length())));
   }
 
   public static Parser<AST.Get> get() {
@@ -160,13 +160,13 @@ public class TruffleArrowParser {
                 .next(v -> terms.token(",")
                   .next(c -> expression()
                     .next(orElse -> terms.token(")")
-                      .map(p2 -> AST.get(v, orElse)))))));
+                      .map(p2 -> AST.get(v, orElse, g.index(), g.length())))))));
   }
 
   public static Parser<AST.Store> store() {
     return terms.token("store")
       .next(s -> variable().sepBy(terms.token(",")).between(terms.token("("), terms.token(")"))
-        .map(variables -> AST.store(variables)));
+        .map(variables -> AST.store(variables, s.index(), s.length())));
   }
 
   public static Parser<String> identifier() {
@@ -177,14 +177,14 @@ public class TruffleArrowParser {
     return terms.token("if").next(t -> expression()
                                          .between(terms.token("("), terms.token(")"))
                                          .next(exp -> statements()
-                                                        .map(statements -> AST.ifs(exp, statements))));
+                                                        .map(statements -> AST.ifs(exp, statements, t.index(), t.length()))));
   }
 
   public static Parser<AST.Load> load() {
     return terms.token("load").next(t -> string()
                                            .between(terms.token("("), terms.token(")"))
                                            .next(s -> statements()
-                                                        .map(statements -> AST.load(s, statements))));
+                                                        .map(statements -> AST.load(s, statements, t.index(), t.length()))));
   }
 
   public static Parser<AST.ASTNode> statement() {

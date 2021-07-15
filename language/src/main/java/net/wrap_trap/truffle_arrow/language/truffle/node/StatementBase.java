@@ -17,11 +17,15 @@
 
 package net.wrap_trap.truffle_arrow.language.truffle.node;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.TypeSystemReference;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.instrumentation.*;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeInfo;
+import com.oracle.truffle.api.nodes.RootNode;
+import com.oracle.truffle.api.source.Source;
+import com.oracle.truffle.api.source.SourceSection;
 
 
 /**
@@ -34,7 +38,10 @@ public abstract class StatementBase extends Node implements InstrumentableNode {
 
   private boolean hasRootTag;
 
-  abstract void executeVoid(VirtualFrame frame);
+  private int sourceIndex;
+  private int sourceLength;
+
+  public abstract void executeVoid(VirtualFrame frame);
 
   @Override
   public boolean isInstrumentable() {
@@ -54,6 +61,32 @@ public abstract class StatementBase extends Node implements InstrumentableNode {
       return hasRootTag;
     }
     return false;
+  }
+
+  public final void setSourceSection(int index, int length) {
+    this.sourceIndex = index;
+    this.sourceLength = length;
+  }
+
+  @Override
+  @CompilerDirectives.TruffleBoundary
+  public final SourceSection getSourceSection() {
+    System.out.println("StatementBase#getSourceSection: sourceLength: " + this.sourceLength);
+    if (this.sourceLength == 0) {
+      return null;
+    }
+
+    RootNode rootNode = getRootNode();
+    if (rootNode == null) {
+      // not yet adopted yet
+      return null;
+    }
+    SourceSection rootSourceSection = rootNode.getSourceSection();
+    if (rootSourceSection == null) {
+      return null;
+    }
+    Source source = rootSourceSection.getSource();
+    return source.createSection(this.sourceIndex, this.sourceLength);
   }
 
   public final void addRootTag() {

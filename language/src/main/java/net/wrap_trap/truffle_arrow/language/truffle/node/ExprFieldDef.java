@@ -37,8 +37,6 @@ public class ExprFieldDef extends ExprBase {
     return new FieldDef(this.name, this.type);
   }
 
-  @Override
-  void executeVoid(VirtualFrame frame) { }
 
   @Override
   public String toString() {

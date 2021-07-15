@@ -49,7 +49,8 @@ public class TruffleArrowLanguage extends TruffleLanguage {
     TruffleArrowTreeGenerator generator = new TruffleArrowTreeGenerator();
     FrameDescriptor frame = new FrameDescriptor();
     Statements statements = generator.visit(frame, script);
-    statements.addRootTag();
+    statements.setSourceSection(0, 1);
+    statements.addRootTagsToStatements();
     TruffleArrowRootNode root = new TruffleArrowRootNode(this, frame, source.createUnavailableSection(), statements);
     return Truffle.getRuntime().createCallTarget(root);
   }

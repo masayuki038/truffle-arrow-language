@@ -35,7 +35,7 @@ public class StatementStore extends StatementBase {
   }
 
   @Override
-  void executeVoid(VirtualFrame frame) {
+  public void executeVoid(VirtualFrame frame) {
     List<Object> values = this.variables.stream().map(v -> v.executeGeneric(frame)).collect(Collectors.toList());
     Object first = values.get(0);
     if (!(first instanceof VectorSchemaRootContainer)) {
