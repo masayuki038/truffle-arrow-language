@@ -21,7 +21,9 @@ import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.dsl.UnsupportedSpecializationException;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.instrumentation.InstrumentableNode;
 import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.SourceSection;
 import net.wrap_trap.truffle_arrow.language.truffle.node.ExprReadLocal;
@@ -38,6 +40,8 @@ public class TruffleArrowRootNode extends RootNode {
 
   private final SourceSection sourceSection;
 
+  private StatementBase current;
+
   public TruffleArrowRootNode(TruffleLanguage<?> language, FrameDescriptor frameDescriptor, SourceSection sourceSection, Statements statements) {
     super(language, frameDescriptor);
     this.statements = statements.getStatements();
@@ -53,6 +57,8 @@ public class TruffleArrowRootNode extends RootNode {
   public Object execute(VirtualFrame frame) {
     try {
       for (StatementBase statement: this.statements) {
+
+        this.current = statement;
         statement.executeVoid(frame);
       }
     } catch (ReturnException e) {
@@ -76,5 +82,17 @@ public class TruffleArrowRootNode extends RootNode {
   @Override
   public SourceSection getSourceSection() {
     return sourceSection;
+  }
+
+  @Override
+  public String getName() {
+    if (this.current instanceof InstrumentableNode.WrapperNode) {
+      Node delegateNode = ((InstrumentableNode.WrapperNode) this.current).getDelegateNode();
+      NodeInfo nodeInfo = delegateNode.getClass().getAnnotation(NodeInfo.class);
+      if (nodeInfo != null) {
+        return nodeInfo.shortName();
+      }
+    }
+    return super.getName();
   }
 }

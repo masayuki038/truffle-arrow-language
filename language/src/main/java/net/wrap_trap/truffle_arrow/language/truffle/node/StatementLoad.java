@@ -35,7 +35,7 @@ import org.apache.arrow.vector.ipc.ArrowFileReader;
 import org.jparsec.internal.util.Lists;
 
 
-@NodeInfo(shortName = "loop")
+@NodeInfo(shortName = "load")
 public class StatementLoad extends StatementBase {
 
   @Child

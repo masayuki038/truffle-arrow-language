@@ -71,7 +71,6 @@ public abstract class StatementBase extends Node implements InstrumentableNode {
   @Override
   @CompilerDirectives.TruffleBoundary
   public final SourceSection getSourceSection() {
-    System.out.println("StatementBase#getSourceSection: sourceLength: " + this.sourceLength);
     if (this.sourceLength == 0) {
       return null;
     }
