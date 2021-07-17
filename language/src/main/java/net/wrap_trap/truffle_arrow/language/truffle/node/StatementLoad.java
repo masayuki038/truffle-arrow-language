@@ -32,6 +32,7 @@ import net.wrap_trap.truffle_arrow.language.ArrowFieldType;
 import net.wrap_trap.truffle_arrow.language.ArrowUtils;
 import org.apache.arrow.vector.*;
 import org.apache.arrow.vector.ipc.ArrowFileReader;
+import org.apache.arrow.vector.ipc.message.ArrowBlock;
 import org.jparsec.internal.util.Lists;
 
 
@@ -53,31 +54,28 @@ public class StatementLoad extends StatementBase {
   public void executeVoid(VirtualFrame frame) {
     String path = this.dirPath.executeString(frame);
     try {
-      List<VectorSchemaRoot> loaded = this.loadArrowFile(path);
-      loaded.stream().forEach(v -> this.loop(frame, v));
+      this.load(frame, path);
     } catch (IOException e) {
       throw new IllegalStateException(e);
     }
   }
 
-  private List<VectorSchemaRoot> loadArrowFile(String path) throws IOException {
+  private void load(VirtualFrame frame, String path) throws IOException {
     try (FileInputStream fileInputStream = new FileInputStream(path)) {
       // TODO close VectorSchemaRoot
       ArrowFileReader reader = new ArrowFileReader(fileInputStream.getChannel(), ArrowUtils.createAllocator("loadArrowFile"));
-      return reader.getRecordBlocks().stream().map(block -> {
-        try {
-          if (!reader.loadRecordBatch(block)) {
-            throw new IllegalStateException("Failed to load RecordBatch");
-          }
-          return reader.getVectorSchemaRoot();
-        } catch (IOException e) {
-          throw new IllegalStateException(e);
+      for (ArrowBlock block:  reader.getRecordBlocks()) {
+        if (!reader.loadRecordBatch(block)) {
+          throw new IllegalStateException("Failed to load RecordBatch");
         }
-      }).collect(Collectors.toList());
+        try (VectorSchemaRoot vectorSchemaRoot = reader.getVectorSchemaRoot()) {
+          this.load(frame, vectorSchemaRoot);
+        }
+      }
     }
   }
 
-  protected void loop(VirtualFrame frame, VectorSchemaRoot vectorSchemaRoot) {
+  protected void load(VirtualFrame frame, VectorSchemaRoot vectorSchemaRoot) {
     FrameDescriptor descriptor = frame.getFrameDescriptor();
 
     List<FieldVector> fieldVectors = Lists.arrayList();

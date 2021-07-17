@@ -1,0 +1,5 @@
+$map = {};
+load ("D:\\tmp\\truffle-arrow\\ontime_backup.arrow") {
+    $map[$DayOfWeek] = get($map[$DayOfWeek], 0) + 1;
+}
+echo $map;
