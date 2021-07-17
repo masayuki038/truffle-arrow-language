@@ -82,7 +82,7 @@
     <properties>
         <maven.compiler.target>1.8</maven.compiler.target>
         <maven.compiler.source>1.8</maven.compiler.source>
-        <graal.version>20.3.0</graal.version>
+        <graal.version>21.1.0</graal.version>
         <jar.dir>${project.build.directory}/jars</jar.dir>
     </properties>
 
