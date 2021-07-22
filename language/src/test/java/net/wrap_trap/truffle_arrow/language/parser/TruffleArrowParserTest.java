@@ -194,6 +194,13 @@ public class TruffleArrowParserTest {
   }
 
   @Test
+  public void testNewArray() {
+    Parser<ArrayValue> parser = parser(new TruffleArrowParser().newArray());
+    assertThat(parser.parse("[$a, $b, $c]"), is(arrayValue(Arrays.asList(variable("$a"), variable("$b"), variable("$c")))));
+    assertThat(parser.parse("[$a]"), is(arrayValue(Arrays.asList(variable("$a")))));
+  }
+
+  @Test
   public void testScript() {
     Parser<List<ASTNode>> parser = parser(TruffleArrowParser.script());
     List<ASTNode> asts = parser.parse(SAMPLE);

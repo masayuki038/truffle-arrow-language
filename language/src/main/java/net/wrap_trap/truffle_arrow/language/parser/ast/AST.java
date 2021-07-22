@@ -273,19 +273,28 @@ public class AST {
   @EqualsAndHashCode
   @ToString
   public static class Store extends SourceIndexable implements ASTNode {
-    private List<Variable> variables;
+    private List<Expression> expression;
 
-    public Store(List<Variable> variables, int sourceIndex, int sourceLength) {
+    public Store(List<Expression> expression, int sourceIndex, int sourceLength) {
       super(sourceIndex, sourceLength);
-      this.variables = variables;
+      this.expression = expression;
     }
 
-    public List<Variable> getVariables() {
-      return variables;
+    public List<Expression> getVariables() {
+      return expression;
     }
   }
 
-  public static Store store(List<Variable> variables, int sourceIndex, int sourceLength) {
-    return new Store(variables, sourceIndex, sourceLength);
+  public static Store store(List<Expression> expression, int sourceIndex, int sourceLength) {
+    return new Store(expression, sourceIndex, sourceLength);
+  }
+
+  @Value
+  public static class ArrayValue implements Expression {
+    List<Variable> variables;
+  }
+
+  public static ArrayValue arrayValue(List<Variable> variables) {
+    return new ArrayValue(variables);
   }
 }

@@ -99,7 +99,7 @@ public class TruffleArrowLanguageTest {
       "  echo $F_INT;\n" +
       "  echo $F_BIGINT;\n" +
       "  $F_BIGINT;\n" +
-      "  store($out, $F_INT, $F_BIGINT);\n" +
+      "  store($out, [$F_INT, $F_BIGINT]);\n" +
       "}\n" +
       "echo $out;" +
       "return $out;";
@@ -121,7 +121,7 @@ public class TruffleArrowLanguageTest {
         "  echo $F_BIGINT;\n" +
         "  $a = \"hoge\";\n" +
         "  $b = 1;\n" +
-        "  store($out, $F_BIGINT, $a);" +
+        "  store($out, [$F_BIGINT, $a]);" +
         "}\n" +
         "return $out;";
     Context ctx = Context.create("ta");
@@ -157,7 +157,7 @@ public class TruffleArrowLanguageTest {
         "  echo $F_INT;\n" +
         "  $cnt = $cnt + 1;\n" +
         "}\n" +
-        "store($out, $cnt);\n" +
+        "store($out, [$cnt]);\n" +
         "return $out;";
     Context ctx = Context.create("ta");
     List<List<Object>> rows = ctx.eval("ta", script).as(List.class);

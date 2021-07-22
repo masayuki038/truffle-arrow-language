@@ -26,8 +26,11 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 import net.wrap_trap.truffle_arrow.language.truffle.TruffleArrowContext;
 import net.wrap_trap.truffle_arrow.language.truffle.TruffleArrowLanguage;
 import net.wrap_trap.truffle_arrow.language.truffle.node.arrays.VectorSchemaRootContainer;
+import net.wrap_trap.truffle_arrow.language.truffle.node.type.ArrayWrapper;
+import net.wrap_trap.truffle_arrow.language.truffle.node.type.MapWrapper;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -37,12 +40,23 @@ public abstract class Store extends TruffleArrowBuiltin {
 
   @Specialization
   @CompilerDirectives.TruffleBoundary
-  public Object store(VectorSchemaRootContainer vectorSchemaRoots, Object[] values,
-                     @CachedLibrary(limit = "3") InteropLibrary interop,
-                     @CachedContext(TruffleArrowLanguage.class) TruffleArrowContext context) {
+  public Object store(VectorSchemaRootContainer vectorSchemaRoots, ArrayWrapper array,
+                      @CachedLibrary(limit = "3") InteropLibrary interop,
+                      @CachedContext(TruffleArrowLanguage.class) TruffleArrowContext context) {
+    Object[] values = array.getArray();
     List<Object> params = IntStream.range(0, values.length)
-      .mapToObj(i -> values[i]).collect(Collectors.toList());
+                            .mapToObj(i -> values[i]).collect(Collectors.toList());
     vectorSchemaRoots.addValues(params);
+    return vectorSchemaRoots;
+  }
+
+  @Specialization
+  @CompilerDirectives.TruffleBoundary
+  public Object store(VectorSchemaRootContainer vectorSchemaRoots, MapWrapper map,
+                      @CachedLibrary(limit = "3") InteropLibrary interop,
+                      @CachedContext(TruffleArrowLanguage.class) TruffleArrowContext context) {
+    Map<Object, Object> value = map.getMap();
+    vectorSchemaRoots.addValues(value);
     return vectorSchemaRoots;
   }
 }

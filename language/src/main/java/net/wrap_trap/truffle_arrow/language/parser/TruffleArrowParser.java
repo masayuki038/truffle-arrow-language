@@ -113,7 +113,7 @@ public class TruffleArrowParser {
   public static Parser<AST.FieldDef> fieldDef() { return FIELDDEF_PARSER.map(AST::fieldDef); }
 
   public static Parser<AST.Expression> value() {
-    return Parsers.or(get(), arrays(), mapMember(), newMap(), variable(), integer(), double_(), string(),
+    return Parsers.or(get(), arrays(), mapMember(), newMap(), variable(), integer(), double_(), string(), newArray(),
       terms.token("(").next(pr -> expression().followedBy(terms.token(")"))));
   }
 
@@ -165,8 +165,8 @@ public class TruffleArrowParser {
 
   public static Parser<AST.Store> store() {
     return terms.token("store")
-      .next(s -> variable().sepBy(terms.token(",")).between(terms.token("("), terms.token(")"))
-        .map(variables -> AST.store(variables, s.index(), s.length())));
+      .next(s -> expression().sepBy(terms.token(",")).between(terms.token("("), terms.token(")"))
+        .map(expression -> AST.store(expression, s.index(), s.length())));
   }
 
   public static Parser<String> identifier() {
@@ -217,6 +217,11 @@ public class TruffleArrowParser {
     return mapMember().followedBy(terms.token("="))
              .next(member -> expression().map(exp -> AST.mapMemberAssignment(member.getMap(), member.getMember(), exp)));
 
+  }
+
+  public static Parser<AST.ArrayValue> newArray() {
+    return variable().sepBy(terms.token(",")).between(terms.token("["), terms.token("]"))
+             .map(variable -> AST.arrayValue(variable));
   }
 
   public static Parser<List<AST.ASTNode>> script() {

@@ -15,25 +15,24 @@
  * limitations under the License.
  */
 
-package net.wrap_trap.truffle_arrow.language.truffle.node.arrays;
+package net.wrap_trap.truffle_arrow.language.truffle.node;
 
-import org.apache.arrow.vector.FieldVector;
-import org.apache.arrow.vector.VectorSchemaRoot;
+import com.oracle.truffle.api.frame.VirtualFrame;
 
 import java.util.List;
+import java.util.TreeMap;
 import java.util.Map;
 
+public class ExprNewArrayLiteral extends ExprBase {
 
-/**
- * A container for VectorSchemaRoot
- */
-public interface VectorSchemaRootContainer {
+  private final List<ExprBase> variables;
 
-  void addValues(List<Object> values);
+  public ExprNewArrayLiteral(List<ExprBase> variables) {
+    this.variables = variables;
+  }
 
-  void addValues(Map<Object, Object> map);
-
-  List<VectorSchemaRoot> getVectorSchemaRoots();
-
-  void setRowCounts();
+  @Override
+  public Object executeGeneric(VirtualFrame frame) {
+    return this.variables.stream().map(v -> v.executeGeneric(frame)).toArray();
+  }
 }

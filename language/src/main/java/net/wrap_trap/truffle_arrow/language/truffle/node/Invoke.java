@@ -27,6 +27,10 @@ import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.NodeInfo;
+import net.wrap_trap.truffle_arrow.language.truffle.node.type.ArrayWrapper;
+import net.wrap_trap.truffle_arrow.language.truffle.node.type.MapWrapper;
+
+import java.util.Map;
 
 @NodeInfo(shortName = "invoke")
 public final class Invoke extends ExprBase {
@@ -49,7 +53,13 @@ public final class Invoke extends ExprBase {
 
     Object[] argumentValues = new Object[argumentNodes.length];
     for (int i = 0; i < argumentNodes.length; i++) {
-      argumentValues[i] = argumentNodes[i].executeGeneric(frame);
+      Object arg = argumentNodes[i].executeGeneric(frame);
+      if (arg instanceof Object[]) {
+        arg = new ArrayWrapper((Object[]) arg);
+      } else if (arg instanceof Map) {
+        arg = new MapWrapper((Map) arg);
+      }
+      argumentValues[i] = arg;
     }
 
     try {

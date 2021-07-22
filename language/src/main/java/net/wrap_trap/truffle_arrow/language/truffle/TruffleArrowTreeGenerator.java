@@ -111,6 +111,8 @@ public class TruffleArrowTreeGenerator {
       return visit(frame, (AST.MapValue) exp);
     } else if (exp instanceof AST.MapMember) {
       return visit(frame, (AST.MapMember) exp);
+    } else if (exp instanceof AST.ArrayValue) {
+      return visit(frame, (AST.ArrayValue) exp);
     }
     throw new RuntimeException("Unknown AST.Expression: " + exp);
   }
@@ -197,6 +199,11 @@ public class TruffleArrowTreeGenerator {
     ExprBase member = visit(frame, mapMemberAssignment.getMember());
     ExprBase value = visit(frame, mapMemberAssignment.getValue());
     return new StatementMapMemberWrite(readLocal, member, value);
+  }
+
+  ExprNewArrayLiteral visit(FrameDescriptor frame, AST.ArrayValue arrayValueNode) {
+    List<ExprBase> variables = arrayValueNode.getVariables().stream().map(v -> visit(frame, v)).collect(Collectors.toList());
+    return new ExprNewArrayLiteral(variables);
   }
 
   Invoke visit(FrameDescriptor frame, AST.Store storeNode) {

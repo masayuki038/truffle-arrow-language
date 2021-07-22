@@ -44,29 +44,19 @@ public class VectorSchemaRootContainerImpl
 
   @Override
   public void addValues(List<Object> values) {
-    if (values.size() == 1 && (values.get(0) instanceof Map)) {
-      addValuesAsMap((Map<Object, Object>) values.get(0));
-    } else {
-      addValuesAsList(values);
+    for (int i = 0; i < this.fieldVectors.size(); i ++) {
+      addValue(values.get(i), this.fieldVectors.get(i));
     }
+    this.indices[current] ++;
   }
 
-  private void addValuesAsMap(Map<Object, Object> map) {
-    if (this.fieldVectors.size() != 2) {
-      throw new IllegalArgumentException("Invalid fields on storing from map: " + this.fieldVectors);
-    }
+  @Override
+  public void addValues(Map<Object, Object> map) {
     for (Map.Entry<Object, Object> e: map.entrySet()) {
       addValue(e.getKey(), this.fieldVectors.get(0));
       addValue(e.getValue(), this.fieldVectors.get(1));
       this.indices[current] ++;
     }
-  }
-
-  private void addValuesAsList(List<Object> values) {
-    for (int i = 0; i < this.fieldVectors.size(); i ++) {
-      addValue(values.get(i), this.fieldVectors.get(i));
-    }
-    this.indices[current] ++;
   }
 
   private void addValue(Object value, FieldVector fieldVector) {
