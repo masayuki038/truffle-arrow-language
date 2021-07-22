@@ -29,7 +29,7 @@ public class ExprDoubleLiteral extends ExprBase {
   }
 
   @Override
-  double executeDouble(VirtualFrame vf) {
+  public double executeDouble(VirtualFrame vf) {
     return value;
   }
 

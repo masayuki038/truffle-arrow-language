@@ -46,7 +46,7 @@ public class ExprArrays extends ExprBase {
   }
 
   @Override
-  Object executeGeneric(VirtualFrame frame) {
+  public Object executeGeneric(VirtualFrame frame) {
     List<FieldDef> fieldDefs = this.fieldDefs.stream().map(
       field -> (FieldDef) field.executeGeneric(frame)).collect(Collectors.toList());
 

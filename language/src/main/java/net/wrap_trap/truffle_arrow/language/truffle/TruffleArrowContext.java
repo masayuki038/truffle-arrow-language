@@ -17,5 +17,35 @@
 
 package net.wrap_trap.truffle_arrow.language.truffle;
 
+import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.dsl.NodeFactory;
+import net.wrap_trap.truffle_arrow.language.truffle.node.builtins.EchoFactory;
+import net.wrap_trap.truffle_arrow.language.truffle.node.builtins.StoreFactory;
+import net.wrap_trap.truffle_arrow.language.truffle.node.builtins.TruffleArrowBuiltin;
+
 public class TruffleArrowContext {
+
+  private final TruffleArrowFunctionRegistry functionRegistry;
+  private TruffleArrowLanguage language;
+
+  public TruffleArrowContext(TruffleArrowLanguage language) {
+    this.language = language;
+    this.functionRegistry = new TruffleArrowFunctionRegistry(language);
+    installBuiltins();
+  }
+
+  public TruffleArrowFunctionRegistry getFunctionRegistry() {
+    return functionRegistry;
+  }
+
+  private void installBuiltins() {
+    installBuiltin(EchoFactory.getInstance());
+    installBuiltin(StoreFactory.getInstance());
+  }
+
+  public void installBuiltin(NodeFactory<? extends TruffleArrowBuiltin> factory) {
+    RootCallTarget target = language.lookupBuiltin(factory);
+    String rootName = target.getRootNode().getName();
+    getFunctionRegistry().register(rootName, target);
+  }
 }

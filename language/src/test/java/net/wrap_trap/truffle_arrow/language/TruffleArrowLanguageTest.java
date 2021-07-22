@@ -47,6 +47,15 @@ public class TruffleArrowLanguageTest {
   }
 
   @Test
+  public void testEcho() {
+    String SAMPLE =
+      "$a = 1;\n" +
+      "echo \"$a\";";
+    Context ctx = Context.create("ta");
+    assertThat(ctx.eval("ta", SAMPLE).asBoolean(), is(true));
+  }
+
+  @Test
   public void testScript() {
     String SAMPLE =
       "$a = 1;\n" +

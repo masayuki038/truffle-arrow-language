@@ -37,34 +37,34 @@ public abstract class ExprBase extends StatementBase {
    * @param frame One row of data. Each FrameSlot corresponds to one column.
    * @return Result of evaluating the expression
    */
-  abstract Object executeGeneric(VirtualFrame frame);
+  public abstract Object executeGeneric(VirtualFrame frame);
 
   @Override
   public void executeVoid(VirtualFrame frame) {
     executeGeneric(frame);
   }
 
-  boolean executeBoolean(VirtualFrame frame) throws UnexpectedResultException {
+  public boolean executeBoolean(VirtualFrame frame) throws UnexpectedResultException {
     return SqlTypesGen.expectBoolean(executeGeneric(frame));
   }
 
-  long executeLong(VirtualFrame frame) throws UnexpectedResultException {
+  public long executeLong(VirtualFrame frame) throws UnexpectedResultException {
     return SqlTypesGen.expectLong(executeGeneric(frame));
   }
 
-  int executeInteger(VirtualFrame frame) throws UnexpectedResultException {
+  public int executeInteger(VirtualFrame frame) throws UnexpectedResultException {
     return SqlTypesGen.expectInteger(executeGeneric(frame));
   }
 
-  double executeDouble(VirtualFrame frame) throws UnexpectedResultException {
+  public double executeDouble(VirtualFrame frame) throws UnexpectedResultException {
     return SqlTypesGen.expectDouble(executeGeneric(frame));
   }
 
-  String executeString(VirtualFrame frame) throws UnexpectedResultException {
+  public String executeString(VirtualFrame frame) throws UnexpectedResultException {
     return SqlTypesGen.expectString(executeGeneric(frame));
   }
 
-  ArrowTimeSec executeArrowTimeSec(VirtualFrame frame) throws UnexpectedResultException {
+  public ArrowTimeSec executeArrowTimeSec(VirtualFrame frame) throws UnexpectedResultException {
     return SqlTypesGen.expectArrowTimeSec(executeGeneric(frame));
   }
 

@@ -17,6 +17,7 @@
 
 package net.wrap_trap.truffle_arrow.language.truffle.node.arrays;
 
+import com.oracle.truffle.api.interop.TruffleObject;
 import net.wrap_trap.truffle_arrow.language.ArrowFieldType;
 import net.wrap_trap.truffle_arrow.language.truffle.node.SqlNull;
 import net.wrap_trap.truffle_arrow.language.truffle.node.type.ArrowTimeSec;
@@ -28,7 +29,8 @@ import java.util.List;
 import java.util.Map;
 
 
-public class VectorSchemaRootContainerImpl implements VectorSchemaRootContainer {
+public class VectorSchemaRootContainerImpl
+  implements VectorSchemaRootContainer, TruffleObject {
 
   private List<VectorSchemaRoot> vectorSchemaRoots;
   private List<FieldVector> fieldVectors;

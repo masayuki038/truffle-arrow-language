@@ -29,7 +29,7 @@ public class ExprStringLiteral extends ExprBase {
   }
 
   @Override
-  String executeString(VirtualFrame vf) {
+  public String executeString(VirtualFrame vf) {
     return value;
   }
 

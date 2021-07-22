@@ -59,7 +59,8 @@ public class TruffleArrowTreeGenerator {
     ExprBase param = visit(frame, command.getParam());
     if ("echo".equals(command.getCommand())) {
       ExprBase expr = visit(frame, command.getParam());
-      StatementEcho echo = new StatementEcho(expr);
+      ExprBase func = new FunctionLiteral("echo");
+      Invoke echo = new Invoke(func, new ExprBase[]{expr});
       echo.setSourceSection(command.getSourceIndex(), command.getSourceLength());
       return echo;
     } else if ("return".equals(command.getCommand())) {
@@ -198,13 +199,17 @@ public class TruffleArrowTreeGenerator {
     return new StatementMapMemberWrite(readLocal, member, value);
   }
 
-  StatementStore visit(FrameDescriptor frame, AST.Store storeNode) {
+  Invoke visit(FrameDescriptor frame, AST.Store storeNode) {
     if (storeNode.getVariables().size() < 2) {
       throw new IllegalArgumentException("'store' requires two or more variables");
     }
 
     List<ExprBase> variables = storeNode.getVariables().stream().map(v -> visit(frame, v)).collect(Collectors.toList());
-    StatementStore store = new StatementStore(variables);
+    ExprBase[] params = new ExprBase[variables.size()];
+    variables.toArray(params);
+
+    ExprBase func = new FunctionLiteral("store");
+    Invoke store = new Invoke(func, params);
     store.setSourceSection(storeNode.getSourceIndex(), storeNode.getSourceLength());
     return store;
   }

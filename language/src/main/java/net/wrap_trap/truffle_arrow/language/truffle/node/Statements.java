@@ -24,6 +24,7 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 @NodeInfo
 public final class Statements extends StatementBase {
 
+  @Children
   private StatementBase[] statements;
 
   public Statements(StatementBase[] statements) {

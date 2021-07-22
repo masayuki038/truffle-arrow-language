@@ -45,7 +45,7 @@ public class ExprGet extends ExprBase {
   }
 
   @Override
-  Object executeGeneric(VirtualFrame frame) {
+  public Object executeGeneric(VirtualFrame frame) {
     Object value = this.expr.executeGeneric(frame);
     if (value == null) {
       return this.orElse.executeGeneric(frame);

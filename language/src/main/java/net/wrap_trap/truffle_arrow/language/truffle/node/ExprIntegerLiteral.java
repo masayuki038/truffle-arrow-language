@@ -29,7 +29,7 @@ public class ExprIntegerLiteral extends ExprBase {
   }
 
   @Override
-  int executeInteger(VirtualFrame vf) {
+  public int executeInteger(VirtualFrame vf) {
     return value;
   }
 

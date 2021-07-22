@@ -20,7 +20,6 @@ package net.wrap_trap.truffle_arrow.language.truffle.node;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlot;
