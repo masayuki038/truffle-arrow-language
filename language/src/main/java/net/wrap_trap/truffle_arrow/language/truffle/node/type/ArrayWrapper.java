@@ -13,4 +13,14 @@ public class ArrayWrapper implements TruffleObject {
   public Object[] getArray() {
     return this.array;
   }
+
+  @Override
+  public int hashCode() {
+    return this.array.hashCode();
+  }
+
+  @Override
+  public String toString() {
+    return this.array.toString();
+  }
 }

@@ -14,4 +14,14 @@ public class MapWrapper implements TruffleObject {
   public Map<Object, Object> getMap() {
     return map;
   }
+
+  @Override
+  public int hashCode() {
+    return this.map.hashCode();
+  }
+
+  @Override
+  public String toString() {
+    return this.map.toString();
+  }
 }
