@@ -103,6 +103,8 @@ public class TruffleArrowTreeGenerator {
       return visit(frame, (AST.StringValue) exp);
     } else if (exp instanceof AST.DoubleValue) {
       return visit(frame, (AST.DoubleValue) exp);
+    } else if (exp instanceof AST.FieldDef) {
+      return visit(frame, (AST.FieldDef) exp);
     } else if (exp instanceof AST.Arrays) {
       return visit(frame, (AST.Arrays) exp);
     } else if (exp instanceof AST.Get) {
@@ -168,10 +170,10 @@ public class TruffleArrowTreeGenerator {
     return new ExprDoubleLiteral(value.getValue());
   }
 
-  ExprArrays visit(FrameDescriptor frame, AST.Arrays arraysNode) {
-    List<ExprFieldDef> fields =
-      arraysNode.getFieldDefs().stream().map(s -> visit(frame, s)).collect(Collectors.toList());
-    ExprArrays arrays =  new ExprArrays(fields);
+  Invoke visit(FrameDescriptor frame, AST.Arrays arraysNode) {
+    ExprNewArrayLiteral fields = visit(frame, arraysNode.getFieldDefs());
+    ExprBase func = new FunctionLiteral("arrays");
+    Invoke arrays = new Invoke(func, new ExprBase[]{fields});
     arrays.setSourceSection(arraysNode.getSourceIndex(), arraysNode.getSourceLength());
     return arrays;
   }

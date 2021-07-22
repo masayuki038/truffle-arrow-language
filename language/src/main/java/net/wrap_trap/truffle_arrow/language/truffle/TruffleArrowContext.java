@@ -19,6 +19,7 @@ package net.wrap_trap.truffle_arrow.language.truffle;
 
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.NodeFactory;
+import net.wrap_trap.truffle_arrow.language.truffle.node.builtins.ArraysFactory;
 import net.wrap_trap.truffle_arrow.language.truffle.node.builtins.EchoFactory;
 import net.wrap_trap.truffle_arrow.language.truffle.node.builtins.StoreFactory;
 import net.wrap_trap.truffle_arrow.language.truffle.node.builtins.TruffleArrowBuiltin;
@@ -41,6 +42,7 @@ public class TruffleArrowContext {
   private void installBuiltins() {
     installBuiltin(EchoFactory.getInstance());
     installBuiltin(StoreFactory.getInstance());
+    installBuiltin(ArraysFactory.getInstance());
   }
 
   public void installBuiltin(NodeFactory<? extends TruffleArrowBuiltin> factory) {

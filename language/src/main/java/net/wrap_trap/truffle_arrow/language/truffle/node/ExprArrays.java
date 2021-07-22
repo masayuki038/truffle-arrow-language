@@ -35,58 +35,58 @@ import java.util.stream.Collectors;
 
 
 @NodeInfo(shortName = "arrays")
-public class ExprArrays extends ExprBase {
+public abstract class ExprArrays extends ExprBase {
 
   private static final int INIT_ROW_COUNT = 1024;
 
-  private List<ExprFieldDef> fieldDefs;
+  private ExprNewArrayLiteral fieldDefs;
 
-  public ExprArrays(List<ExprFieldDef> fieldDefs) {
+  public ExprArrays(ExprNewArrayLiteral fieldDefs) {
     this.fieldDefs = fieldDefs;
   }
 
-  @Override
-  public Object executeGeneric(VirtualFrame frame) {
-    List<FieldDef> fieldDefs = this.fieldDefs.stream().map(
-      field -> (FieldDef) field.executeGeneric(frame)).collect(Collectors.toList());
-
-    Map<String, FieldVector> fieldVectorMap = new HashMap<>();
-    VectorSchemaRoot out = createVectorSchemaRoot(
-      fieldDefs, ArrowUtils.createAllocator("out"), INIT_ROW_COUNT);
-    for (FieldVector fieldVector: out.getFieldVectors()) {
-      fieldVectorMap.put(fieldVector.getField().getName(), fieldVector);
-    }
-    return new VectorSchemaRootContainerImpl(out);
-  }
-
-  public static VectorSchemaRoot createVectorSchemaRoot(List<FieldDef> fields, BufferAllocator allocator, int initialCapacity) {
-    List<FieldVector> fieldVectors = new ArrayList<>();
-    fields.stream().forEach(field -> {
-      String name = field.getName();
-      FieldType type = field.getType();
-      FieldVector fieldVector;
-      // TODO handle DATE / TIME / TIMESTAMP
-      switch (type) {
-        case INT:
-          fieldVector = new IntVector(name, allocator);
-          break;
-        case BIGINT:
-          fieldVector = new BigIntVector(name, allocator);
-          break;
-        case DOUBLE:
-          fieldVector = new Float8Vector(name, allocator);
-          break;
-        case STRING:
-          fieldVector = new VarCharVector(name, allocator);
-          break;
-        default:
-          throw new IllegalArgumentException(
-            "Unexpected field type. field: %s, type: %s".format(name, type));
-      }
-      fieldVector.setInitialCapacity(initialCapacity);
-      fieldVector.allocateNew();
-      fieldVectors.add(fieldVector);
-    });
-    return new VectorSchemaRoot(fieldVectors);
-  }
+//  @Override
+//  public Object executeGeneric(VirtualFrame frame) {
+//    List<FieldDef> fieldDefs = this.fieldDefs.stream().map(
+//      field -> (FieldDef) field.executeGeneric(frame)).collect(Collectors.toList());
+//
+//    Map<String, FieldVector> fieldVectorMap = new HashMap<>();
+//    VectorSchemaRoot out = createVectorSchemaRoot(
+//      fieldDefs, ArrowUtils.createAllocator("out"), INIT_ROW_COUNT);
+//    for (FieldVector fieldVector: out.getFieldVectors()) {
+//      fieldVectorMap.put(fieldVector.getField().getName(), fieldVector);
+//    }
+//    return new VectorSchemaRootContainerImpl(out);
+//  }
+//
+//  public static VectorSchemaRoot createVectorSchemaRoot(List<FieldDef> fields, BufferAllocator allocator, int initialCapacity) {
+//    List<FieldVector> fieldVectors = new ArrayList<>();
+//    fields.stream().forEach(field -> {
+//      String name = field.getName();
+//      FieldType type = field.getType();
+//      FieldVector fieldVector;
+//      // TODO handle DATE / TIME / TIMESTAMP
+//      switch (type) {
+//        case INT:
+//          fieldVector = new IntVector(name, allocator);
+//          break;
+//        case BIGINT:
+//          fieldVector = new BigIntVector(name, allocator);
+//          break;
+//        case DOUBLE:
+//          fieldVector = new Float8Vector(name, allocator);
+//          break;
+//        case STRING:
+//          fieldVector = new VarCharVector(name, allocator);
+//          break;
+//        default:
+//          throw new IllegalArgumentException(
+//            "Unexpected field type. field: %s, type: %s".format(name, type));
+//      }
+//      fieldVector.setInitialCapacity(initialCapacity);
+//      fieldVector.allocateNew();
+//      fieldVectors.add(fieldVector);
+//    });
+//    return new VectorSchemaRoot(fieldVectors);
+//  }
 }

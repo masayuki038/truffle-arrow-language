@@ -229,19 +229,19 @@ public class AST {
   @EqualsAndHashCode
   @ToString
   public static class Arrays extends SourceIndexable implements Expression {
-    private List<FieldDef> fieldDefs;
+    private ArrayValue fieldDefs;
 
-    public Arrays(List<FieldDef> fieldDefs, int sourceIndex, int sourceLength) {
+    public Arrays(ArrayValue fieldDefs, int sourceIndex, int sourceLength) {
       super(sourceIndex, sourceLength);
       this.fieldDefs = fieldDefs;
     }
 
-    public List<FieldDef> getFieldDefs() {
+    public ArrayValue getFieldDefs() {
       return fieldDefs;
     }
   }
 
-  public static Arrays arrays(List<FieldDef> fieldDefs, int sourceIndex, int sourceLength) {
+  public static Arrays arrays(ArrayValue fieldDefs, int sourceIndex, int sourceLength) {
     return new Arrays(fieldDefs, sourceIndex, sourceLength);
   }
 
@@ -291,10 +291,10 @@ public class AST {
 
   @Value
   public static class ArrayValue implements Expression {
-    List<Variable> variables;
+    List<Expression> variables;
   }
 
-  public static ArrayValue arrayValue(List<Variable> variables) {
+  public static ArrayValue arrayValue(List<Expression> variables) {
     return new ArrayValue(variables);
   }
 }

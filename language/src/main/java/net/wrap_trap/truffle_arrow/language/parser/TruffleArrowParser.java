@@ -94,6 +94,8 @@ public class TruffleArrowParser {
     Terminals.Identifier.TOKENIZER
     );
 
+  static Parser<AST.ArrayValue> newArray = newArray();
+
   public static Parser<AST.IntValue> integer() {
     return Terminals.IntegerLiteral.PARSER.map(s -> AST.intValue(Integer.parseInt(s)));
   }
@@ -113,7 +115,7 @@ public class TruffleArrowParser {
   public static Parser<AST.FieldDef> fieldDef() { return FIELDDEF_PARSER.map(AST::fieldDef); }
 
   public static Parser<AST.Expression> value() {
-    return Parsers.or(get(), arrays(), mapMember(), newMap(), variable(), integer(), double_(), string(), newArray(),
+    return Parsers.or(get(), arrays(), mapMember(), newMap(), variable(), fieldDef(), integer(), double_(), string(), newArray,
       terms.token("(").next(pr -> expression().followedBy(terms.token(")"))));
   }
 
@@ -149,7 +151,7 @@ public class TruffleArrowParser {
 
   public static Parser<AST.Arrays> arrays() {
     return terms.token("arrays")
-      .next(a -> fieldDef().sepBy(terms.token(",")).between(terms.token("("), terms.token(")"))
+      .next(a -> newArray().between(terms.token("("), terms.token(")"))
         .map(fields -> AST.arrays(fields, a.index(), a.length())));
   }
 
@@ -220,8 +222,8 @@ public class TruffleArrowParser {
   }
 
   public static Parser<AST.ArrayValue> newArray() {
-    return variable().sepBy(terms.token(",")).between(terms.token("["), terms.token("]"))
-             .map(variable -> AST.arrayValue(variable));
+    return expression().sepBy(terms.token(",")).between(terms.token("["), terms.token("]"))
+             .map(expression -> AST.arrayValue(expression));
   }
 
   public static Parser<List<AST.ASTNode>> script() {
