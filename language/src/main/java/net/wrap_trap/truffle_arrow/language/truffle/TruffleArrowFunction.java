@@ -122,7 +122,7 @@ public class TruffleArrowFunction implements TruffleObject {
   @SuppressWarnings("unused")
   static final class IsIdenticalOrUndefined {
     @Specialization
-    static TriState doSLFunction(TruffleArrowFunction receiver, TruffleArrowFunction other) {
+    static TriState doTruffleArrowFunction(TruffleArrowFunction receiver, TruffleArrowFunction other) {
       return receiver == other ? TriState.TRUE : TriState.FALSE;
     }
 

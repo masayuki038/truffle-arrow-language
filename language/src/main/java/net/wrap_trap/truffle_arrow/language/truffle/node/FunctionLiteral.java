@@ -61,7 +61,7 @@ public final class FunctionLiteral extends ExprBase {
     TruffleArrowFunction function = this.cachedFunction;
     if (function == null) {
       CompilerDirectives.transferToInterpreterAndInvalidate();
-      this.cachedFunction = function = contextReference.get().getFunctionRegistry().lookup(functionName, true);
+      this.cachedFunction = function = contextReference.get().getFunctionRegistry().lookup(functionName);
     }
     return function;
   }

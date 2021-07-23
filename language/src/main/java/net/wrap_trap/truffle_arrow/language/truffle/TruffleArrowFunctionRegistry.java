@@ -1,66 +1,48 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package net.wrap_trap.truffle_arrow.language.truffle;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.interop.TruffleObject;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+
 
 public class TruffleArrowFunctionRegistry {
 
-  private final TruffleArrowLanguage language;
-  private final FunctionsObject functionsObject = new FunctionsObject();
-  private final Map<Map<String, RootCallTarget>, Void> registeredFunctions = new IdentityHashMap<>();
+  final Map<String, TruffleArrowFunction> functions = new HashMap<>();
 
-  public TruffleArrowFunctionRegistry(TruffleArrowLanguage language) {
-    this.language = language;
-  }
+  public TruffleArrowFunctionRegistry() { }
 
   @CompilerDirectives.TruffleBoundary
-  public TruffleArrowFunction lookup(String name, boolean createIfNotPresent) {
-    return functionsObject.functions.get(name);
+  public TruffleArrowFunction lookup(String name) {
+    return this.functions.get(name);
   }
 
   TruffleArrowFunction register(String name, RootCallTarget callTarget) {
-    TruffleArrowFunction result = functionsObject.functions.get(name);
+    TruffleArrowFunction result = this.functions.get(name);
     if (result == null) {
       result = new TruffleArrowFunction(callTarget);
-      functionsObject.functions.put(name, result);
+      this.functions.put(name, result);
     } else {
       result.setCallTarget(callTarget);
     }
     return result;
-  }
-
-  @CompilerDirectives.TruffleBoundary
-  public void register(Map<String, RootCallTarget> newFunctions) {
-    if (registeredFunctions.containsKey(newFunctions)) {
-      return;
-    }
-    for (Map.Entry<String, RootCallTarget> entry : newFunctions.entrySet()) {
-      register(entry.getKey(), entry.getValue());
-    }
-    registeredFunctions.put(newFunctions, null);
-  }
-
-  public TruffleArrowFunction getFunction(String name) {
-    return functionsObject.functions.get(name);
-  }
-
-  /**
-   * Returns the sorted list of all functions, for printing purposes only.
-   */
-  public List<TruffleArrowFunction> getFunctions() {
-    List<TruffleArrowFunction> result = new ArrayList<>(functionsObject.functions.values());
-    Collections.sort(result, new Comparator<TruffleArrowFunction>() {
-      public int compare(TruffleArrowFunction f1, TruffleArrowFunction f2) {
-        return f1.toString().compareTo(f2.toString());
-      }
-    });
-    return result;
-  }
-
-  public TruffleObject getFunctionsObject() {
-    return functionsObject;
   }
 }

@@ -31,7 +31,7 @@ public class TruffleArrowContext {
 
   public TruffleArrowContext(TruffleArrowLanguage language) {
     this.language = language;
-    this.functionRegistry = new TruffleArrowFunctionRegistry(language);
+    this.functionRegistry = new TruffleArrowFunctionRegistry();
     installBuiltins();
   }
 
