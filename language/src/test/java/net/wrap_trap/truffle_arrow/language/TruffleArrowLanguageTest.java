@@ -56,6 +56,16 @@ public class TruffleArrowLanguageTest {
   }
 
   @Test
+  public void testCurrentTime() {
+    String SAMPLE =
+      "$start = current_time();\n" +
+      "$end = current_time();\n" +
+      "echo $end - $start;";
+    Context ctx = Context.create("ta");
+    assertThat(ctx.eval("ta", SAMPLE).asBoolean(), is(true));
+  }
+
+  @Test
   public void testScript() {
     String SAMPLE =
       "$a = 1;\n" +

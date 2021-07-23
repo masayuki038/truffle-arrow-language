@@ -115,6 +115,8 @@ public class TruffleArrowTreeGenerator {
       return visit(frame, (AST.MapMember) exp);
     } else if (exp instanceof AST.ArrayValue) {
       return visit(frame, (AST.ArrayValue) exp);
+    } else if (exp instanceof AST.CurrentTime) {
+      return visit(frame, (AST.CurrentTime) exp);
     }
     throw new RuntimeException("Unknown AST.Expression: " + exp);
   }
@@ -221,5 +223,12 @@ public class TruffleArrowTreeGenerator {
     Invoke store = new Invoke(func, params);
     store.setSourceSection(storeNode.getSourceIndex(), storeNode.getSourceLength());
     return store;
+  }
+
+  Invoke visit(FrameDescriptor frame, AST.CurrentTime currentTimeNode) {
+    ExprBase func = new FunctionLiteral("current_time");
+    Invoke currentTime = new Invoke(func, new ExprBase[0]);
+    currentTime.setSourceSection(currentTimeNode.getSourceIndex(), currentTimeNode.getSourceLength());
+    return currentTime;
   }
 }

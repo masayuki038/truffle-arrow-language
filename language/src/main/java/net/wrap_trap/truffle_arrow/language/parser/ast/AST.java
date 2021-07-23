@@ -297,4 +297,17 @@ public class AST {
   public static ArrayValue arrayValue(List<Expression> variables) {
     return new ArrayValue(variables);
   }
+
+  @EqualsAndHashCode
+  @ToString
+  public static class CurrentTime extends SourceIndexable implements Expression {
+
+    public CurrentTime(int sourceIndex, int sourceLength) {
+      super(sourceIndex, sourceLength);
+    }
+  }
+
+  public static CurrentTime currentTime(int sourceIndex, int sourceLength) {
+    return new CurrentTime(sourceIndex, sourceLength);
+  }
 }

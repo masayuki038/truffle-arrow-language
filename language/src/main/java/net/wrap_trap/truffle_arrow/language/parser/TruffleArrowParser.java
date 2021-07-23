@@ -33,7 +33,7 @@ import static org.jparsec.pattern.Patterns.isChar;
 public class TruffleArrowParser {
   static String[] operators = {
     "<", ">", "+", "-", "*", "/", "(", ")", ";", "=", ",", "{", "}", "[", "]", "==", "<>", "<=", ">=", ".", "&&", "||", "like"};
-  static String[] keywords = {"echo", "if", "load", "arrays", "store", "get", "return"};
+  static String[] keywords = {"echo", "if", "load", "arrays", "store", "get", "current_time", "return"};
 
   static Parser<Void> ignored = Scanners.WHITESPACES.optional();
   static Terminals terms = Terminals.operators(operators).words(Scanners.IDENTIFIER).keywords(keywords).build();
@@ -115,7 +115,7 @@ public class TruffleArrowParser {
   public static Parser<AST.FieldDef> fieldDef() { return FIELDDEF_PARSER.map(AST::fieldDef); }
 
   public static Parser<AST.Expression> value() {
-    return Parsers.or(get(), arrays(), mapMember(), newMap(), variable(), fieldDef(), integer(), double_(), string(), newArray,
+    return Parsers.or(get(), arrays(), currentTime(), mapMember(), newMap(), variable(), fieldDef(), integer(), double_(), string(), newArray,
       terms.token("(").next(pr -> expression().followedBy(terms.token(")"))));
   }
 
@@ -218,12 +218,16 @@ public class TruffleArrowParser {
   public static Parser<AST.MapMemberAssignment> mapMemberAssignment() {
     return mapMember().followedBy(terms.token("="))
              .next(member -> expression().map(exp -> AST.mapMemberAssignment(member.getMap(), member.getMember(), exp)));
-
   }
 
   public static Parser<AST.ArrayValue> newArray() {
     return expression().sepBy(terms.token(",")).between(terms.token("["), terms.token("]"))
              .map(expression -> AST.arrayValue(expression));
+  }
+
+  public static Parser<AST.CurrentTime> currentTime() {
+    return terms.token("current_time").next(p1 -> terms.token("(").next(p2 -> terms.token(")")
+             .map(c -> AST.currentTime(c.index(), c.length()))));
   }
 
   public static Parser<List<AST.ASTNode>> script() {
