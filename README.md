@@ -12,7 +12,7 @@ Sample Code
 This is a sample code for filter-aggregation.
 ```php
 $map = {}; // for aggregation
-$out = arrays(key:INT, value:INT); // for output
+$out = arrays([key:INT, value:INT]); // for output
 load ("target/all_fields.arrow") {
   // Allow to reference the field value (F_INT) directly in loop
   if ($F_INT < 5) { // filter
