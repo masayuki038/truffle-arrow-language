@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 
 public class ArrowUtils {
 
-  private static final Logger log = LoggerFactory.getLogger(GroupBy.class);
+  private static final Logger log = LoggerFactory.getLogger(GroupByRunner.class);
   private static final String CONFIG_ALLOCATOR_SIZE = "allocator.initial.size";
   private static final String CONFIG_ALLOCATOR_DEBUG_LOG = "allocator.debug-log";
   private static RootAllocator rootAllocator = new RootAllocator(Long.MAX_VALUE);

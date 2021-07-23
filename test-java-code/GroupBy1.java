@@ -23,11 +23,9 @@ import java.util.Map;
 
 import org.apache.arrow.vector.*;
 
-public class GroupBy {
+public class GroupBy1 implements GroupBy {
 
-  public void run(String path, int column) throws IOException {
-    Map<Object, Integer> ret = new HashMap<>();
-
+  public void run(String path, int column, Map<Object, Integer> ret) throws IOException {
     ArrowUtils.loadArrowFile(path).stream().forEach(v -> {
       FieldVector fieldVector = v.getFieldVectors().get(column);
       for (int i = 0; i < v.getRowCount(); i ++) {
@@ -39,10 +37,11 @@ public class GroupBy {
         }
       }
     });
-    System.out.println(ret);
   }
 
   public static void main(String[] args) throws IOException {
-    new GroupBy().run("D:\\tmp\\truffle-arrow\\ontime_backup.arrow", 4);
+    Map<Object, Integer> ret = new HashMap<>();
+    new GroupBy1().run("D:\\tmp\\truffle-arrow\\ontime_backup.arrow", 4, ret);
+    System.out.println(ret);
   }
 }
