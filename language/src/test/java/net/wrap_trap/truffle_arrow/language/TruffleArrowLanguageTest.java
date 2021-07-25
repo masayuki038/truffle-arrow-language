@@ -182,7 +182,10 @@ public class TruffleArrowLanguageTest {
         "$out = arrays([key:INT, value:INT]);" +
         "load (\"target/all_fields.arrow\") {\n" +
         "  $tmp = $F_INT / 2;\n" +
-        "  $map[$tmp] = get($map[$tmp], 0) + 1;\n" +
+        "  if (!has($map[$tmp])) {\n" +
+        "    $map[$tmp] = 0;\n" +
+        "  }\n" +
+        "  $map[$tmp] = $map[$tmp] + 1;\n" +
         "}\n" +
         "store($out, $map);" +
         "return $out;";
@@ -202,7 +205,10 @@ public class TruffleArrowLanguageTest {
         "$out = arrays([key:INT, value:INT]);" +
         "load (\"target/all_fields.arrow\") {\n" +
         "  if ($F_INT < 5) {\n" +
-        "    $map[$F_INT] = get($map[$F_INT], 0) + 1;\n" +
+        "    if (!has($map[$F_INT])) {\n" +
+        "      $map[$F_INT] = 0;\n" +
+        "    }\n" +
+        "    $map[$F_INT] = $map[$F_INT] + 1;\n" +
         "  }\n" +
         "}\n" +
         "store($out, $map);" +

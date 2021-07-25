@@ -169,6 +169,18 @@ public class TruffleArrowParserTest {
   }
 
   @Test
+  public void testHas() {
+    Parser<Has> parser = parser(new TruffleArrowParser().has());
+    assertThat(parser.parse("has($m[$a])"), is(has(mapMember(variable("$m"), variable("$a")), 1, 1)));
+  }
+
+  @Test
+  public void testHasAndNot() {
+    Parser<Not> parser = parser(new TruffleArrowParser().not());
+    assertThat(parser.parse("!has($m[$a])"), is(not(has(mapMember(variable("$m"), variable("$a")), 1, 1))));
+  }
+
+  @Test
   public void testNewMap() {
     Parser<Expression> parser = parser(new TruffleArrowParser().newMap());
     assertThat(parser.parse("{}"), is(mapValue()));

@@ -23,12 +23,16 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import net.wrap_trap.truffle_arrow.language.truffle.TruffleArrowContext;
 import net.wrap_trap.truffle_arrow.language.truffle.TruffleArrowLanguage;
+import net.wrap_trap.truffle_arrow.language.truffle.TruffleUtils;
 import net.wrap_trap.truffle_arrow.language.truffle.node.arrays.VectorSchemaRootContainer;
 import net.wrap_trap.truffle_arrow.language.truffle.node.type.ArrayWrapper;
 import net.wrap_trap.truffle_arrow.language.truffle.node.type.MapWrapper;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -57,6 +61,17 @@ public abstract class Store extends TruffleArrowBuiltin {
                       @CachedContext(TruffleArrowLanguage.class) TruffleArrowContext context) {
     Map<Object, Object> value = map.getMap();
     vectorSchemaRoots.addValues(value);
+    return vectorSchemaRoots;
+  }
+
+  @Specialization
+  @CompilerDirectives.TruffleBoundary
+  public Object store(VectorSchemaRootContainer vectorSchemaRoots, DynamicObject dynamicObject,
+                      @CachedLibrary(limit = "3") InteropLibrary interop,
+                      @CachedLibrary(limit = "3") DynamicObjectLibrary objLib,
+                      @CachedContext(TruffleArrowLanguage.class) TruffleArrowContext context) {
+    Map<Object, Object> map = TruffleUtils.toMap(dynamicObject, objLib);
+    vectorSchemaRoots.addValues(map);
     return vectorSchemaRoots;
   }
 }

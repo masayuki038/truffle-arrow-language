@@ -17,6 +17,7 @@
 
 package net.wrap_trap.truffle_arrow.language.truffle;
 
+import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.FrameSlotKind;
@@ -95,6 +96,8 @@ public class TruffleArrowTreeGenerator {
    ExprBase visit(FrameDescriptor frame, AST.Expression exp) {
     if (exp instanceof AST.BinaryOperator) {
       return visit(frame, (AST.BinaryOperator) exp);
+    } else if (exp instanceof AST.Not) {
+      return visit(frame, (AST.Not) exp);
     } else if (exp instanceof AST.Variable) {
       return visit(frame, (AST.Variable) exp);
     } else if (exp instanceof AST.IntValue) {
@@ -109,6 +112,8 @@ public class TruffleArrowTreeGenerator {
       return visit(frame, (AST.Arrays) exp);
     } else if (exp instanceof AST.Get) {
       return visit(frame, (AST.Get) exp);
+    } else if (exp instanceof AST.Has) {
+      return visit(frame, (AST.Has) exp);
     } else if (exp instanceof AST.MapValue) {
       return visit(frame, (AST.MapValue) exp);
     } else if (exp instanceof AST.MapMember) {
@@ -141,9 +146,14 @@ public class TruffleArrowTreeGenerator {
       case "==":
         return ExprEqualsNodeGen.create(left, right);
       case "<>":
-        return ExprNotNodeGen.create(ExprEqualsNodeGen.create(left, right));
+        return ExprNotEqualNodeGen.create(ExprEqualsNodeGen.create(left, right));
     }
     throw new RuntimeException("Unknown binop " + op);
+  }
+
+  ExprNot visit(FrameDescriptor frame, AST.Not not) {
+    ExprBase expr = visit(frame, not.getExpression());
+    return ExprNotNodeGen.create(expr);
   }
 
   ExprFieldDef visit(FrameDescriptor frame, AST.FieldDef op) {
@@ -188,21 +198,30 @@ public class TruffleArrowTreeGenerator {
     return get;
   }
 
-  ExprNewMapLiteral visit(FrameDescriptor frame, AST.MapValue mapValueNode) {
-    return new ExprNewMapLiteral();
-  }
-
-  ExprMapMember visit(FrameDescriptor frame, AST.MapMember mapMember) {
-    ExprReadLocal readLocal = visit(frame, mapMember.getMap());
+  ExprHasMember visit(FrameDescriptor frame, AST.Has hasNode) {
+    AST.MapMember mapMember = hasNode.getMapMember();
+    ExprReadLocal object = visit(frame, mapMember.getMap());
     ExprBase member = visit(frame, mapMember.getMember());
-    return new ExprMapMember(readLocal, member);
+    ExprHasMember has = ExprHasMemberNodeGen.create(object, new ExprConvertToString(member));
+    has.setSourceSection(hasNode.getSourceIndex(), hasNode.getSourceLength());
+    return has;
   }
 
-  StatementMapMemberWrite visit(FrameDescriptor frame, AST.MapMemberAssignment mapMemberAssignment) {
-    ExprReadLocal readLocal = visit(frame, mapMemberAssignment.getMap());
+  ExprNewObjectLiteral visit(FrameDescriptor frame, AST.MapValue mapValueNode) {
+    return ExprNewObjectLiteralNodeGen.create();
+  }
+
+  ExprReadProperty visit(FrameDescriptor frame, AST.MapMember mapMember) {
+    ExprReadLocal object = visit(frame, mapMember.getMap());
+    ExprBase member = visit(frame, mapMember.getMember());
+    return ExprReadPropertyNodeGen.create(object, new ExprConvertToString(member));
+  }
+
+  StatementWriteProperty visit(FrameDescriptor frame, AST.MapMemberAssignment mapMemberAssignment) {
+    ExprReadLocal object = visit(frame, mapMemberAssignment.getMap());
     ExprBase member = visit(frame, mapMemberAssignment.getMember());
     ExprBase value = visit(frame, mapMemberAssignment.getValue());
-    return new StatementMapMemberWrite(readLocal, member, value);
+    return StatementWritePropertyNodeGen.create(object, new ExprConvertToString(member), value);
   }
 
   ExprNewArrayLiteral visit(FrameDescriptor frame, AST.ArrayValue arrayValueNode) {

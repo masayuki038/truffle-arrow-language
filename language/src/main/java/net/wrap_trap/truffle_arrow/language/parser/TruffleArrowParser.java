@@ -32,8 +32,8 @@ import static org.jparsec.pattern.Patterns.isChar;
 
 public class TruffleArrowParser {
   static String[] operators = {
-    "<", ">", "+", "-", "*", "/", "(", ")", ";", "=", ",", "{", "}", "[", "]", "==", "<>", "<=", ">=", ".", "&&", "||", "like"};
-  static String[] keywords = {"echo", "if", "load", "arrays", "store", "get", "current_time", "return"};
+    "<", ">", "+", "-", "*", "/", "(", ")", ";", "=", ",", "{", "}", "[", "]", "==", "<>", "<=", ">=", ".", "&&", "||", "like", "!"};
+  static String[] keywords = {"echo", "if", "load", "arrays", "store", "get", "has", "current_time", "return"};
 
   static Parser<Void> ignored = Scanners.WHITESPACES.optional();
   static Terminals terms = Terminals.operators(operators).words(Scanners.IDENTIFIER).keywords(keywords).build();
@@ -115,7 +115,7 @@ public class TruffleArrowParser {
   public static Parser<AST.FieldDef> fieldDef() { return FIELDDEF_PARSER.map(AST::fieldDef); }
 
   public static Parser<AST.Expression> value() {
-    return Parsers.or(get(), arrays(), currentTime(), mapMember(), newMap(), variable(), fieldDef(), integer(), double_(), string(), newArray,
+    return Parsers.or(get(), has(), arrays(), currentTime(), mapMember(), newMap(), variable(), fieldDef(), not(), integer(), double_(), string(), newArray,
       terms.token("(").next(pr -> expression().followedBy(terms.token(")"))));
   }
 
@@ -133,6 +133,10 @@ public class TruffleArrowParser {
     return operator().next(l ->
                              terms.token("==", "<>", "<", ">", "<=", ">=", "&&", "||", "like").source()
                                .next(op -> operator().map(r -> (AST.Expression) AST.binary(l, r, op.trim()))).optional(l));
+  }
+
+  public static Parser<AST.Not> not() {
+    return terms.token("!").next(n -> has().map(e -> AST.not(e)));
   }
 
   public static Parser<AST.Expression> expression() {
@@ -163,6 +167,14 @@ public class TruffleArrowParser {
                   .next(c -> expression()
                     .next(orElse -> terms.token(")")
                       .map(p2 -> AST.get(v, orElse, g.index(), g.length())))))));
+  }
+
+  public static Parser<AST.Has> has() {
+    return terms.token("has")
+            .next(h -> terms.token("(")
+              .next(p1 -> mapMember()
+                .next(mm -> terms.token(")")
+                  .map(p2 -> AST.has(mm, h.index(), h.length())))));
   }
 
   public static Parser<AST.Store> store() {

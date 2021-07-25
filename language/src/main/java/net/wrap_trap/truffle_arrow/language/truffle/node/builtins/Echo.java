@@ -23,8 +23,13 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import net.wrap_trap.truffle_arrow.language.truffle.TruffleArrowContext;
 import net.wrap_trap.truffle_arrow.language.truffle.TruffleArrowLanguage;
+import net.wrap_trap.truffle_arrow.language.truffle.TruffleUtils;
+
+import java.util.Map;
 
 @NodeInfo(shortName = "echo")
 public abstract class Echo extends TruffleArrowBuiltin {
@@ -33,8 +38,13 @@ public abstract class Echo extends TruffleArrowBuiltin {
   @CompilerDirectives.TruffleBoundary
   public Object echo(Object value,
                      @CachedLibrary(limit = "3") InteropLibrary interop,
+                     @CachedLibrary(limit = "3") DynamicObjectLibrary objLib,
                      @CachedContext(TruffleArrowLanguage.class) TruffleArrowContext context) {
-    System.out.println(value);
+    if (value instanceof DynamicObject) {
+      System.out.println(TruffleUtils.toMap((DynamicObject) value, objLib));
+    } else {
+      System.out.println(value);
+    }
     return value;
   }
 }

@@ -134,6 +134,15 @@ public class AST {
     }
   }
 
+  @Value
+  public static class Not implements Expression {
+    Expression expression;
+  }
+
+  public static Not not(Expression expression) {
+    return new Not(expression);
+  }
+
   public static Command command(String command, Expression param, int sourceIndex, int sourceLength) {
     return new Command(command, param, sourceIndex, sourceLength);
   }
@@ -268,6 +277,25 @@ public class AST {
 
   public static Get get(Expression expr, Expression orElse, int sourceIndex, int sourceLength) {
     return new Get(expr, orElse, sourceIndex, sourceLength);
+  }
+
+  @EqualsAndHashCode
+  @ToString
+  public static class Has extends SourceIndexable implements Expression {
+    private MapMember mapMember;
+
+    public Has(MapMember mapMember, int sourceIndex, int sourceLength) {
+      super(sourceIndex, sourceLength);
+      this.mapMember = mapMember;
+    }
+
+    public MapMember getMapMember() {
+      return this.mapMember;
+    }
+  }
+
+  public static Has has(MapMember mapMember, int sourceIndex, int sourceLength) {
+    return new Has(mapMember, sourceIndex, sourceLength);
   }
 
   @EqualsAndHashCode
